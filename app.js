@@ -1,4 +1,4 @@
-// The Tech Bit - Main App
+// The Tech Bit - Main App with Full Settings
 
 let currentUser = null;
 let allProducts = [];
@@ -8,10 +8,41 @@ const perPage = 9;
 let brands = new Set();
 let categories = new Set();
 let videosList = [];
-let currentVideo = null;
+let currentLanguage = 'en';
 
-// Firebase
-let auth = null;
+// Translations
+const translations = {
+    en: {
+        brand: "The Tech Bit", home: "Home", products: "Products", offer: "Offer", video: "Video",
+        contact: "Contact", account: "Account", settings: "Settings", appearance: "Appearance",
+        display: "Display", language: "Language", advanced: "Advanced", theme: "Theme",
+        default: "Default", light: "Light", dark: "Dark", nature: "Nature", ocean: "Ocean",
+        font_family: "Font Family", font_size: "Font Size", border_radius: "Border Radius",
+        brightness: "Brightness", contrast: "Contrast", saturation: "Saturation",
+        animation_speed: "Animation Speed", english: "English", urdu: "Urdu", roman_urdu: "Roman Urdu",
+        reset_all: "Reset All Settings", save: "Save", cancel: "Cancel"
+    },
+    ur: {
+        brand: "دی ٹیک بٹ", home: "ہوم", products: "مصنوعات", offer: "آفر", video: "ویڈیو",
+        contact: "رابطہ", account: "اکاؤنٹ", settings: "ترتیبات", appearance: "ظہور",
+        display: "ڈسپلے", language: "زبان", advanced: "اعلی", theme: "تھیم",
+        default: "طے شدہ", light: "ہلکا", dark: "گہرا", nature: "فطرت", ocean: "سمندر",
+        font_family: "فونٹ", font_size: "سائز", border_radius: "بارڈر",
+        brightness: "چمک", contrast: "کنٹراسٹ", saturation: "سیریشن",
+        animation_speed: "اینی میشن", english: "انگریزی", urdu: "اردو", roman_urdu: "رومن اردو",
+        reset_all: "ری سیٹ", save: "محفوظ کریں", cancel: "منسوخ"
+    },
+    ru: {
+        brand: "The Tech Bit", home: "Home", products: "Products", offer: "Offer", video: "Video",
+        contact: "Contact", account: "Account", settings: "Settings", appearance: "Appearance",
+        display: "Display", language: "Language", advanced: "Advanced", theme: "Theme",
+        default: "Default", light: "Light", dark: "Dark", nature: "Nature", ocean: "Ocean",
+        font_family: "Font Family", font_size: "Font Size", border_radius: "Border Radius",
+        brightness: "Brightness", contrast: "Contrast", saturation: "Saturation",
+        animation_speed: "Animation Speed", english: "English", urdu: "Urdu", roman_urdu: "Roman Urdu",
+        reset_all: "Reset All", save: "Save", cancel: "Cancel"
+    }
+};
 
 // DOM Elements
 const loading = document.getElementById('loading');
@@ -30,30 +61,157 @@ function showMessage(msg, isError = false) {
     setTimeout(() => notification.style.display = 'none', 3000);
 }
 
-// Load products from JSON
+// ========== SETTINGS SYSTEM ==========
+function applyTheme(theme) {
+    document.body.className = '';
+    if (theme !== 'default') document.body.classList.add(`theme-${theme}`);
+    localStorage.setItem('theme', theme);
+    document.querySelectorAll('.theme-option').forEach(opt => {
+        if (opt.dataset.theme === theme) opt.classList.add('active');
+        else opt.classList.remove('active');
+    });
+}
+
+function applyLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('language', lang);
+    document.querySelectorAll('[data-translate]').forEach(el => {
+        const key = el.getAttribute('data-translate');
+        if (translations[lang][key]) el.innerText = translations[lang][key];
+    });
+    document.querySelectorAll('.language-option').forEach(opt => {
+        if (opt.dataset.lang === lang) opt.classList.add('active');
+        else opt.classList.remove('active');
+    });
+}
+
+function applyFontFamily(font) {
+    let fontFamily = '';
+    switch(font) {
+        case 'serif': fontFamily = 'Georgia, serif'; break;
+        case 'monospace': fontFamily = 'Courier New, monospace'; break;
+        case 'jameel': fontFamily = 'Jameel Noori Nastaleeq, serif'; break;
+        default: fontFamily = '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+    }
+    document.documentElement.style.setProperty('--font', fontFamily);
+    localStorage.setItem('fontFamily', font);
+    document.querySelectorAll('.font-option').forEach(opt => {
+        if (opt.dataset.font === font) opt.classList.add('active');
+        else opt.classList.remove('active');
+    });
+}
+
+function applySlider(id, property, unit = 'px') {
+    const slider = document.getElementById(id);
+    const valueSpan = document.getElementById(id + 'Value');
+    if (!slider) return;
+    const val = slider.value;
+    if (valueSpan) valueSpan.innerText = val + unit;
+    if (property === '--font-size') document.documentElement.style.setProperty(property, val + unit);
+    else if (property === '--radius') document.documentElement.style.setProperty('--radius', val + unit);
+    else if (property === '--brightness') document.body.style.filter = `brightness(${val}%) contrast(${localStorage.getItem('contrast') || 100}%) saturate(${localStorage.getItem('saturation') || 100}%)`;
+    else if (property === '--contrast') document.body.style.filter = `brightness(${localStorage.getItem('brightness') || 100}%) contrast(${val}%) saturate(${localStorage.getItem('saturation') || 100}%)`;
+    else if (property === '--saturation') document.body.style.filter = `brightness(${localStorage.getItem('brightness') || 100}%) contrast(${localStorage.getItem('contrast') || 100}%) saturate(${val}%)`;
+    else if (property === '--animation-speed') document.documentElement.style.setProperty('--animation-speed', val + 's');
+    localStorage.setItem(property.replace('--', ''), val);
+}
+
+function loadSettings() {
+    // Theme
+    const theme = localStorage.getItem('theme') || 'default';
+    applyTheme(theme);
+    // Language
+    const lang = localStorage.getItem('language') || 'en';
+    applyLanguage(lang);
+    // Font
+    const font = localStorage.getItem('fontFamily') || 'sans-serif';
+    applyFontFamily(font);
+    // Sliders
+    const fontSize = localStorage.getItem('font-size') || '16';
+    document.getElementById('fontSizeSlider').value = fontSize;
+    document.getElementById('fontSizeValue').innerText = fontSize + 'px';
+    document.documentElement.style.setProperty('--font-size', fontSize + 'px');
+    
+    const borderRadius = localStorage.getItem('border-radius') || '12';
+    document.getElementById('borderRadiusSlider').value = borderRadius;
+    document.getElementById('borderRadiusValue').innerText = borderRadius + 'px';
+    document.documentElement.style.setProperty('--radius', borderRadius + 'px');
+    
+    const brightness = localStorage.getItem('brightness') || '100';
+    document.getElementById('brightnessSlider').value = brightness;
+    document.getElementById('brightnessValue').innerText = brightness + '%';
+    const contrast = localStorage.getItem('contrast') || '100';
+    document.getElementById('contrastSlider').value = contrast;
+    document.getElementById('contrastValue').innerText = contrast + '%';
+    const saturation = localStorage.getItem('saturation') || '100';
+    document.getElementById('saturationSlider').value = saturation;
+    document.getElementById('saturationValue').innerText = saturation + '%';
+    document.body.style.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    
+    const animSpeed = localStorage.getItem('animation-speed') || '0.3';
+    document.getElementById('animSpeedSlider').value = animSpeed;
+    document.getElementById('animSpeedValue').innerText = animSpeed + 's';
+    document.documentElement.style.setProperty('--animation-speed', animSpeed + 's');
+}
+
+function resetSettings() {
+    localStorage.clear();
+    loadSettings();
+    showMessage('Settings reset to default');
+}
+
+function initSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const closeBtn = document.getElementById('closeSettings');
+    
+    settingsBtn.onclick = () => modal.style.display = 'flex';
+    closeBtn.onclick = () => modal.style.display = 'none';
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    
+    // Theme options
+    document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.onclick = () => applyTheme(opt.dataset.theme);
+    });
+    // Language options
+    document.querySelectorAll('.language-option').forEach(opt => {
+        opt.onclick = () => applyLanguage(opt.dataset.lang);
+    });
+    // Font options
+    document.querySelectorAll('.font-option').forEach(opt => {
+        opt.onclick = () => applyFontFamily(opt.dataset.font);
+    });
+    // Sliders
+    document.getElementById('fontSizeSlider').oninput = () => applySlider('fontSizeSlider', '--font-size', 'px');
+    document.getElementById('borderRadiusSlider').oninput = () => applySlider('borderRadiusSlider', '--radius', 'px');
+    document.getElementById('brightnessSlider').oninput = () => applySlider('brightnessSlider', '--brightness', '%');
+    document.getElementById('contrastSlider').oninput = () => applySlider('contrastSlider', '--contrast', '%');
+    document.getElementById('saturationSlider').oninput = () => applySlider('saturationSlider', '--saturation', '%');
+    document.getElementById('animSpeedSlider').oninput = () => applySlider('animSpeedSlider', '--animation-speed', 's');
+    // Reset button
+    document.getElementById('resetAllSettings').onclick = resetSettings;
+}
+
+// ========== PRODUCTS & VIDEOS (same as before, but with language support) ==========
 async function loadProducts() {
     showLoading(true);
     try {
         const res = await fetch('products.json');
         const data = await res.json();
-        // Deduplicate by id
         const unique = new Map();
         data.products.forEach(p => { if (!unique.has(p.id)) unique.set(p.id, p); });
         allProducts = Array.from(unique.values());
-        
         brands.clear(); categories.clear();
         allProducts.forEach(p => {
             if (p.brand) brands.add(p.brand);
             if (p.category) categories.add(p.category);
         });
         videosList = allProducts.filter(p => p.videoUrl);
-        
         updateFilters();
         filteredProducts = [...allProducts];
         displayProducts();
     } catch(e) {
-        console.error(e);
-        // Fallback sample products
+        // fallback sample products
         allProducts = [
             { id:1, name:"BOYA BY-MW3", brand:"BOYA", category:"Audio", price:2299, description:"Wireless mic", badge:"Bestseller", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600", videoUrl:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", rating:4.7, features:["Wireless","Noise cancellation"] },
             { id:2, name:"The Tech Bit Air Pro", brand:"The Tech Bit", category:"Audio", price:199, description:"Noise cancelling headphones", badge:"New", image:"https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600", videoUrl:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", rating:4.5, features:["ANC","30h battery"] },
@@ -98,7 +256,7 @@ function createProductCard(p) {
             <div class="product-quality">${quality} (${stars} ${p.rating})</div>
             <div class="product-actions">
                 ${p.videoUrl ? `<button class="btn btn-primary watch-video" data-id="${p.id}"><i class="fas fa-play-circle"></i> See Video</button>` : ''}
-                <button class="btn btn-whatsapp share-product" data-name="${p.name}" data-img="${p.image}"><i class="fab fa-whatsapp"></i> Share</button>
+                <button class="btn btn-whatsapp share-product" data-name="${p.name}"><i class="fab fa-whatsapp"></i> Share</button>
             </div>
         </div>
     `;
@@ -163,14 +321,7 @@ function resetFilters() {
 }
 
 function showProductDetail(p) {
-    const detailPage = document.getElementById('product-detail');
-    if (!detailPage) {
-        // Create a simple alert for demo
-        alert(`Product: ${p.name}\nPrice: PKR ${p.price}\nBrand: ${p.brand}\nCategory: ${p.category}\nFeatures: ${p.features?.join(', ')}`);
-        return;
-    }
-    // For simplicity, we'll just show an alert. In a full app, you'd populate a modal.
-    showMessage(`Opening ${p.name}`, false);
+    showMessage(`Opening ${p.name} - PKR ${p.price}`, false);
 }
 
 function playVideoById(id) {
@@ -181,7 +332,7 @@ function playVideoById(id) {
         const videoElem = document.getElementById('mainVideo');
         if (videoElem) {
             videoElem.src = product.videoUrl;
-            videoElem.load(); // No autoplay
+            videoElem.load();
             document.getElementById('videoTitle').innerText = product.name;
             document.getElementById('videoDesc').innerText = product.description;
             document.getElementById('buyVideoBtn').onclick = () => shareProduct(product.name);
@@ -212,7 +363,6 @@ function loadVideos() {
     });
 }
 
-// Video player controls (manual play/pause)
 function setupVideoPlayer() {
     const video = document.getElementById('mainVideo');
     const playBtn = document.getElementById('playPauseBtn');
@@ -221,30 +371,25 @@ function setupVideoPlayer() {
     const timeDisplay = document.getElementById('timeDisplay');
     const volumeSlider = document.getElementById('volumeSlider');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
-    
     if (!video) return;
-    
-    playBtn.addEventListener('click', () => {
-        if (video.paused) video.play();
-        else video.pause();
-    });
-    video.addEventListener('play', () => playBtn.innerHTML = '<i class="fas fa-pause"></i>');
-    video.addEventListener('pause', () => playBtn.innerHTML = '<i class="fas fa-play"></i>');
-    video.addEventListener('timeupdate', () => {
+    playBtn.onclick = () => video.paused ? video.play() : video.pause();
+    video.onplay = () => playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    video.onpause = () => playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    video.ontimeupdate = () => {
         if (video.duration) {
             progress.style.width = (video.currentTime / video.duration) * 100 + '%';
             timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
         }
-    });
-    progressBar.addEventListener('click', (e) => {
+    };
+    progressBar.onclick = (e) => {
         const rect = progressBar.getBoundingClientRect();
         video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
-    });
-    volumeSlider.addEventListener('input', () => video.volume = volumeSlider.value / 100);
-    fullscreenBtn.addEventListener('click', () => {
+    };
+    volumeSlider.oninput = () => video.volume = volumeSlider.value / 100;
+    fullscreenBtn.onclick = () => {
         if (!document.fullscreenElement) video.parentElement.requestFullscreen();
         else document.exitFullscreen();
-    });
+    };
 }
 
 function formatTime(sec) {
@@ -263,14 +408,13 @@ function shareWebsite() {
     shareProduct('The Tech Bit');
 }
 
-// Navigation
 function navigateTo(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
     document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => link.classList.remove('active'));
     document.querySelectorAll(`[data-page="${pageId}"]`).forEach(link => link.classList.add('active'));
-    if (pageId === 'products') { applyFilters(); }
-    if (pageId === 'video') { loadVideos(); }
+    if (pageId === 'products') applyFilters();
+    if (pageId === 'video') { loadVideos(); setupVideoPlayer(); }
     closeMobileMenu();
 }
 
@@ -278,7 +422,6 @@ function closeMobileMenu() {
     document.getElementById('navLinks').classList.remove('active');
 }
 
-// Auth (simplified, no actual Firebase integration for demo)
 function renderAuth() {
     const container = document.getElementById('authContainer');
     container.innerHTML = `
@@ -300,11 +443,10 @@ function renderAuth() {
     `;
     document.getElementById('loginTabBtn').onclick = () => { document.getElementById('loginForm').style.display='block'; document.getElementById('signupForm').style.display='none'; };
     document.getElementById('signupTabBtn').onclick = () => { document.getElementById('loginForm').style.display='none'; document.getElementById('signupForm').style.display='block'; };
-    document.getElementById('doLogin').onclick = () => showMessage('Demo: Login successful (no backend)', false);
+    document.getElementById('doLogin').onclick = () => showMessage('Demo: Login successful', false);
     document.getElementById('doSignup').onclick = () => showMessage('Demo: Account created', false);
 }
 
-// Contact form (EmailJS mock)
 function setupContact() {
     const form = document.getElementById('contactForm');
     form.addEventListener('submit', (e) => {
@@ -314,7 +456,6 @@ function setupContact() {
     });
 }
 
-// Event listeners
 function bindEvents() {
     document.getElementById('applyFilters')?.addEventListener('click', applyFilters);
     document.getElementById('resetFilters')?.addEventListener('click', resetFilters);
@@ -325,7 +466,6 @@ function bindEvents() {
     document.getElementById('offerVideoBtn')?.addEventListener('click', () => navigateTo('video'));
     document.getElementById('offerProductsBtn')?.addEventListener('click', () => navigateTo('products'));
     document.getElementById('shareSite')?.addEventListener('click', shareWebsite);
-    document.getElementById('settingsBtn')?.addEventListener('click', () => showMessage('Settings panel would open here', false));
     document.getElementById('menuBtn')?.addEventListener('click', () => document.getElementById('navLinks').classList.toggle('active'));
     document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -341,6 +481,8 @@ function bindEvents() {
     setupContact();
     renderAuth();
     setupVideoPlayer();
+    initSettingsModal();
+    loadSettings();
 }
 
 // Initialize
