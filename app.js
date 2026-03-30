@@ -9,6 +9,16 @@ let brands = new Set();
 let categories = new Set();
 let videosList = [];
 let currentLanguage = 'en';
+let searchTimeout = null;
+
+// Offer Configuration
+const offerConfig = {
+    active: true,
+    startDate: "2024-01-01",
+    endDate: "2024-12-31",
+    percentage: 30,
+    description: "Special year-end discount on all products"
+};
 
 // Translations
 const translations = {
@@ -32,7 +42,7 @@ const translations = {
         animation_speed: "اینی میشن", english: "انگریزی", urdu: "اردو", roman_urdu: "رومن اردو",
         reset_all: "ری سیٹ", save: "محفوظ کریں", cancel: "منسوخ"
     },
-    ru: {
+    roman: {
         brand: "The Tech Bit", home: "Home", products: "Products", offer: "Offer", video: "Video",
         contact: "Contact", account: "Account", settings: "Settings", appearance: "Appearance",
         display: "Display", language: "Language", advanced: "Advanced", theme: "Theme",
@@ -40,7 +50,7 @@ const translations = {
         font_family: "Font Family", font_size: "Font Size", border_radius: "Border Radius",
         brightness: "Brightness", contrast: "Contrast", saturation: "Saturation",
         animation_speed: "Animation Speed", english: "English", urdu: "Urdu", roman_urdu: "Roman Urdu",
-        reset_all: "Reset All", save: "Save", cancel: "Cancel"
+        reset_all: "Reset All Settings", save: "Save", cancel: "Cancel"
     }
 };
 
@@ -77,7 +87,7 @@ function applyLanguage(lang) {
     localStorage.setItem('language', lang);
     document.querySelectorAll('[data-translate]').forEach(el => {
         const key = el.getAttribute('data-translate');
-        if (translations[lang][key]) el.innerText = translations[lang][key];
+        if (translations[lang] && translations[lang][key]) el.innerText = translations[lang][key];
     });
     document.querySelectorAll('.language-option').forEach(opt => {
         if (opt.dataset.lang === lang) opt.classList.add('active');
@@ -90,7 +100,7 @@ function applyFontFamily(font) {
     switch(font) {
         case 'serif': fontFamily = 'Georgia, serif'; break;
         case 'monospace': fontFamily = 'Courier New, monospace'; break;
-        case 'jameel': fontFamily = 'Jameel Noori Nastaleeq, serif'; break;
+        case 'jameel': fontFamily = 'Jameel Noori Nastaleeq, "Noto Nastaliq Urdu", serif'; break;
         default: fontFamily = '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
     }
     document.documentElement.style.setProperty('--font', fontFamily);
@@ -101,32 +111,42 @@ function applyFontFamily(font) {
     });
 }
 
+function updateDisplayFilters() {
+    const brightness = localStorage.getItem('brightness') || '100';
+    const contrast = localStorage.getItem('contrast') || '100';
+    const saturation = localStorage.getItem('saturation') || '100';
+    document.body.style.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+}
+
 function applySlider(id, property, unit = 'px') {
     const slider = document.getElementById(id);
     const valueSpan = document.getElementById(id + 'Value');
     if (!slider) return;
     const val = slider.value;
     if (valueSpan) valueSpan.innerText = val + unit;
-    if (property === '--font-size') document.documentElement.style.setProperty(property, val + unit);
-    else if (property === '--radius') document.documentElement.style.setProperty('--radius', val + unit);
-    else if (property === '--brightness') document.body.style.filter = `brightness(${val}%) contrast(${localStorage.getItem('contrast') || 100}%) saturate(${localStorage.getItem('saturation') || 100}%)`;
-    else if (property === '--contrast') document.body.style.filter = `brightness(${localStorage.getItem('brightness') || 100}%) contrast(${val}%) saturate(${localStorage.getItem('saturation') || 100}%)`;
-    else if (property === '--saturation') document.body.style.filter = `brightness(${localStorage.getItem('brightness') || 100}%) contrast(${localStorage.getItem('contrast') || 100}%) saturate(${val}%)`;
-    else if (property === '--animation-speed') document.documentElement.style.setProperty('--animation-speed', val + 's');
-    localStorage.setItem(property.replace('--', ''), val);
+    if (property === '--font-size') {
+        document.documentElement.style.setProperty(property, val + unit);
+        localStorage.setItem('font-size', val);
+    } else if (property === '--radius') {
+        document.documentElement.style.setProperty('--radius', val + unit);
+        localStorage.setItem('border-radius', val);
+    } else if (property === '--animation-speed') {
+        document.documentElement.style.setProperty('--animation-speed', val + 's');
+        localStorage.setItem('animation-speed', val);
+    } else {
+        localStorage.setItem(property.replace('--', ''), val);
+        updateDisplayFilters();
+    }
 }
 
 function loadSettings() {
-    // Theme
     const theme = localStorage.getItem('theme') || 'default';
     applyTheme(theme);
-    // Language
     const lang = localStorage.getItem('language') || 'en';
     applyLanguage(lang);
-    // Font
     const font = localStorage.getItem('fontFamily') || 'sans-serif';
     applyFontFamily(font);
-    // Sliders
+    
     const fontSize = localStorage.getItem('font-size') || '16';
     document.getElementById('fontSizeSlider').value = fontSize;
     document.getElementById('fontSizeValue').innerText = fontSize + 'px';
@@ -146,7 +166,7 @@ function loadSettings() {
     const saturation = localStorage.getItem('saturation') || '100';
     document.getElementById('saturationSlider').value = saturation;
     document.getElementById('saturationValue').innerText = saturation + '%';
-    document.body.style.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    updateDisplayFilters();
     
     const animSpeed = localStorage.getItem('animation-speed') || '0.3';
     document.getElementById('animSpeedSlider').value = animSpeed;
@@ -164,35 +184,40 @@ function initSettingsModal() {
     const modal = document.getElementById('settingsModal');
     const settingsBtn = document.getElementById('settingsBtn');
     const closeBtn = document.getElementById('closeSettings');
-    
     settingsBtn.onclick = () => modal.style.display = 'flex';
     closeBtn.onclick = () => modal.style.display = 'none';
     modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
     
-    // Theme options
     document.querySelectorAll('.theme-option').forEach(opt => {
         opt.onclick = () => applyTheme(opt.dataset.theme);
     });
-    // Language options
     document.querySelectorAll('.language-option').forEach(opt => {
         opt.onclick = () => applyLanguage(opt.dataset.lang);
     });
-    // Font options
     document.querySelectorAll('.font-option').forEach(opt => {
         opt.onclick = () => applyFontFamily(opt.dataset.font);
     });
-    // Sliders
     document.getElementById('fontSizeSlider').oninput = () => applySlider('fontSizeSlider', '--font-size', 'px');
     document.getElementById('borderRadiusSlider').oninput = () => applySlider('borderRadiusSlider', '--radius', 'px');
     document.getElementById('brightnessSlider').oninput = () => applySlider('brightnessSlider', '--brightness', '%');
     document.getElementById('contrastSlider').oninput = () => applySlider('contrastSlider', '--contrast', '%');
     document.getElementById('saturationSlider').oninput = () => applySlider('saturationSlider', '--saturation', '%');
     document.getElementById('animSpeedSlider').oninput = () => applySlider('animSpeedSlider', '--animation-speed', 's');
-    // Reset button
     document.getElementById('resetAllSettings').onclick = resetSettings;
+    
+    // Settings tabs
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const tabName = tab.dataset.tab;
+            document.querySelectorAll('.settings-tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+        });
+    });
 }
 
-// ========== PRODUCTS & VIDEOS (same as before, but with language support) ==========
+// ========== PRODUCTS & VIDEOS ==========
 async function loadProducts() {
     showLoading(true);
     try {
@@ -211,7 +236,7 @@ async function loadProducts() {
         filteredProducts = [...allProducts];
         displayProducts();
     } catch(e) {
-        // fallback sample products
+        console.error("Error loading products:", e);
         allProducts = [
             { id:1, name:"BOYA BY-MW3", brand:"BOYA", category:"Audio", price:2299, description:"Wireless mic", badge:"Bestseller", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600", videoUrl:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", rating:4.7, features:["Wireless","Noise cancellation"] },
             { id:2, name:"The Tech Bit Air Pro", brand:"The Tech Bit", category:"Audio", price:199, description:"Noise cancelling headphones", badge:"New", image:"https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600", videoUrl:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", rating:4.5, features:["ANC","30h battery"] },
@@ -281,7 +306,11 @@ function displayProducts() {
     const start = (currentPage-1)*perPage;
     const paginated = filteredProducts.slice(start, start+perPage);
     container.innerHTML = '';
-    paginated.forEach(p => container.appendChild(createProductCard(p)));
+    if (paginated.length === 0) {
+        container.innerHTML = '<div class="empty-message">No products found. Try changing your filters.</div>';
+    } else {
+        paginated.forEach(p => container.appendChild(createProductCard(p)));
+    }
     if (homeContainer) {
         homeContainer.innerHTML = '';
         allProducts.slice(0, 3).forEach(p => homeContainer.appendChild(createProductCard(p)));
@@ -345,7 +374,7 @@ function loadVideos() {
     if (!container) return;
     container.innerHTML = '';
     if (videosList.length === 0) {
-        container.innerHTML = '<div>No videos available</div>';
+        container.innerHTML = '<div class="empty-message">No videos available</div>';
         return;
     }
     videosList.forEach(v => {
@@ -372,27 +401,40 @@ function setupVideoPlayer() {
     const volumeSlider = document.getElementById('volumeSlider');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     if (!video) return;
+    
     playBtn.onclick = () => video.paused ? video.play() : video.pause();
     video.onplay = () => playBtn.innerHTML = '<i class="fas fa-pause"></i>';
     video.onpause = () => playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    video.onended = () => playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    
     video.ontimeupdate = () => {
-        if (video.duration) {
+        if (video.duration && isFinite(video.duration)) {
             progress.style.width = (video.currentTime / video.duration) * 100 + '%';
             timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
         }
     };
+    
     progressBar.onclick = (e) => {
         const rect = progressBar.getBoundingClientRect();
-        video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
+        const percent = (e.clientX - rect.left) / rect.width;
+        if (video.duration && isFinite(video.duration)) {
+            video.currentTime = percent * video.duration;
+        }
     };
+    
     volumeSlider.oninput = () => video.volume = volumeSlider.value / 100;
+    
     fullscreenBtn.onclick = () => {
-        if (!document.fullscreenElement) video.parentElement.requestFullscreen();
-        else document.exitFullscreen();
+        if (!document.fullscreenElement) {
+            video.parentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
     };
 }
 
 function formatTime(sec) {
+    if (isNaN(sec)) return "0:00";
     let m = Math.floor(sec / 60);
     let s = Math.floor(sec % 60);
     return `${m}:${s < 10 ? '0'+s : s}`;
@@ -415,6 +457,7 @@ function navigateTo(pageId) {
     document.querySelectorAll(`[data-page="${pageId}"]`).forEach(link => link.classList.add('active'));
     if (pageId === 'products') applyFilters();
     if (pageId === 'video') { loadVideos(); setupVideoPlayer(); }
+    if (pageId === 'offer') updateOfferPage();
     closeMobileMenu();
 }
 
@@ -447,12 +490,44 @@ function renderAuth() {
     document.getElementById('doSignup').onclick = () => showMessage('Demo: Account created', false);
 }
 
+function updateOfferPage() {
+    if (offerConfig.active) {
+        document.getElementById('offerPercentage').innerText = `${offerConfig.percentage}% OFF`;
+        document.getElementById('offerText').innerText = `On all The Tech Bit products`;
+        document.getElementById('offerDescription').innerText = offerConfig.description;
+    }
+}
+
 function setupContact() {
+    // Initialize EmailJS
+    emailjs.init("q_cI26sBuHJYeJ7OG");
+    
     const form = document.getElementById('contactForm');
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        showMessage('Message sent! (Demo)', false);
-        form.reset();
+        const name = document.getElementById('contactName').value;
+        const email = document.getElementById('contactEmail').value;
+        const phone = document.getElementById('contactPhone').value;
+        const subject = document.getElementById('contactSubject').value;
+        const message = document.getElementById('contactMessage').value;
+        
+        showLoading(true);
+        try {
+            await emailjs.send("service_n2r2our", "template_rqvrxoh", {
+                from_name: name,
+                from_email: email,
+                phone: phone,
+                subject: subject,
+                message: message
+            });
+            showMessage('Message sent successfully! We will contact you soon.', false);
+            form.reset();
+        } catch (error) {
+            console.error("EmailJS error:", error);
+            showMessage('Failed to send message. Please try again later.', true);
+        } finally {
+            showLoading(false);
+        }
     });
 }
 
@@ -475,14 +550,15 @@ function bindEvents() {
         });
     });
     document.getElementById('searchInput')?.addEventListener('input', () => {
-        clearTimeout(window.searchTimeout);
-        window.searchTimeout = setTimeout(applyFilters, 300);
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(applyFilters, 300);
     });
     setupContact();
     renderAuth();
     setupVideoPlayer();
     initSettingsModal();
     loadSettings();
+    updateOfferPage();
 }
 
 // Initialize
