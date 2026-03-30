@@ -9,6 +9,108 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<!-- Settings Modal -->
+<div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center;">
+    <div style="background:var(--card); width:90%; max-width:500px; max-height:90vh; overflow-y:auto; border-radius:var(--radius); padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2><i class="fas fa-cog"></i> <span data-translate="settings">Settings</span></h2>
+            <button id="closeSettings" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        
+        <!-- Tabs -->
+        <div style="display:flex; gap:10px; border-bottom:1px solid #ddd; margin-bottom:20px;">
+            <button class="settings-tab active" data-tab="appearance">Appearance</button>
+            <button class="settings-tab" data-tab="display">Display</button>
+            <button class="settings-tab" data-tab="language">Language</button>
+            <button class="settings-tab" data-tab="advanced">Advanced</button>
+        </div>
+        
+        <!-- Appearance Tab -->
+        <div id="appearanceTab" class="settings-tab-content active">
+            <h3>Theme</h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:10px; margin-bottom:20px;">
+                <div class="theme-option" data-theme="default"><div style="height:40px; background:linear-gradient(135deg,#6a11cb,#2575fc); border-radius:8px;"></div>Default</div>
+                <div class="theme-option" data-theme="light"><div style="height:40px; background:linear-gradient(135deg,#6a11cb,#2575fc); border-radius:8px;"></div>Light</div>
+                <div class="theme-option" data-theme="dark"><div style="height:40px; background:#1a1a1a; border-radius:8px;"></div>Dark</div>
+                <div class="theme-option" data-theme="nature"><div style="height:40px; background:linear-gradient(135deg,#2e7d32,#4caf50); border-radius:8px;"></div>Nature</div>
+                <div class="theme-option" data-theme="ocean"><div style="height:40px; background:linear-gradient(135deg,#0066cc,#00bcd4); border-radius:8px;"></div>Ocean</div>
+            </div>
+            <h3>Font Family</h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:10px; margin-bottom:20px;">
+                <div class="font-option" data-font="sans-serif">Sans Serif</div>
+                <div class="font-option" data-font="serif">Serif</div>
+                <div class="font-option" data-font="monospace">Monospace</div>
+                <div class="font-option" data-font="jameel">Jameel Noori</div>
+            </div>
+            <h3>Font Size</h3>
+            <input type="range" id="fontSizeSlider" min="12" max="24" value="16" style="width:100%;">
+            <span id="fontSizeValue">16px</span>
+            
+            <h3>Border Radius</h3>
+            <input type="range" id="borderRadiusSlider" min="0" max="24" value="12" style="width:100%;">
+            <span id="borderRadiusValue">12px</span>
+        </div>
+        
+        <!-- Display Tab -->
+        <div id="displayTab" class="settings-tab-content" style="display:none;">
+            <h3>Brightness</h3>
+            <input type="range" id="brightnessSlider" min="0" max="200" value="100" style="width:100%;">
+            <span id="brightnessValue">100%</span>
+            <h3>Contrast</h3>
+            <input type="range" id="contrastSlider" min="0" max="200" value="100" style="width:100%;">
+            <span id="contrastValue">100%</span>
+            <h3>Saturation</h3>
+            <input type="range" id="saturationSlider" min="0" max="200" value="100" style="width:100%;">
+            <span id="saturationValue">100%</span>
+            <h3>Animation Speed</h3>
+            <input type="range" id="animSpeedSlider" min="0" max="1" step="0.05" value="0.3" style="width:100%;">
+            <span id="animSpeedValue">0.3s</span>
+        </div>
+        
+        <!-- Language Tab -->
+        <div id="languageTab" class="settings-tab-content" style="display:none;">
+            <div style="display:grid; gap:10px;">
+                <div class="language-option" data-lang="en">🇬🇧 English</div>
+                <div class="language-option" data-lang="ur">🇵🇰 اردو</div>
+                <div class="language-option" data-lang="ru">🇵🇰 Roman Urdu</div>
+            </div>
+        </div>
+        
+        <!-- Advanced Tab -->
+        <div id="advancedTab" class="settings-tab-content" style="display:none;">
+            <button id="resetAllSettings" class="btn btn-primary" style="background:#dc3545; width:100%;">Reset All Settings</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Theme classes */
+    .theme-dark { --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --header: linear-gradient(135deg,#1a1a1a,#2d2d2d); --footer: #1a1a1a; }
+    .theme-nature { --bg: #e8f5e9; --card: #ffffff; --text: #1b5e20; --header: linear-gradient(135deg,#2e7d32,#4caf50); --footer: #1b5e20; --primary: #2e7d32; --secondary: #4caf50; }
+    .theme-ocean { --bg: #e1f5fe; --card: #ffffff; --text: #01579b; --header: linear-gradient(135deg,#0066cc,#00bcd4); --footer: #0066cc; --primary: #0066cc; --secondary: #00bcd4; }
+    body { background: var(--bg); color: var(--text); transition: all var(--animation-speed,0.3s); }
+    .product-card, .hero, .filter-container, .form-container, .video-player-container { background: var(--card); }
+    footer { background: var(--footer); }
+    .settings-tab { padding: 8px 16px; background: none; border: none; cursor: pointer; font-weight: 500; }
+    .settings-tab.active { border-bottom: 2px solid var(--primary); color: var(--primary); }
+    .theme-option, .language-option, .font-option { cursor: pointer; padding: 8px; border: 2px solid #ddd; border-radius: 8px; text-align: center; transition: 0.2s; }
+    .theme-option.active, .language-option.active, .font-option.active { border-color: var(--primary); background: rgba(106,17,203,0.1); }
+    input[type="range"] { -webkit-appearance: none; height: 6px; background: #ddd; border-radius: 3px; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; }
+</style>
+
+<script>
+    // Tab switching for settings modal
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const tabName = tab.dataset.tab;
+            document.querySelectorAll('.settings-tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+        });
+    });
+</script>
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%236a11cb'/%3E%3Ctext x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3ETTB%3C/text%3E%3C/svg%3E">
