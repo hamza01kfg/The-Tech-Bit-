@@ -1,568 +1,355 @@
-// The Tech Bit - Main App with Full Settings
+// Products Data
+const products = [
+    { id:1, name:"Quantum Smartwatch", brand:"TechBit", category:"Wearables", price:199, rating:4.5, image:"https://picsum.photos/id/20/300/200", desc:"Advanced health tracking with 7-day battery.", stock:true },
+    { id:2, name:"AeroPods Pro", brand:"TechBit", category:"Audio", price:129, rating:4.8, image:"https://picsum.photos/id/1/300/200", desc:"Noise cancellation, spatial audio.", stock:true },
+    { id:3, name:"Infinity Display", brand:"VisionX", category:"Displays", price:399, rating:4.2, image:"https://picsum.photos/id/0/300/200", desc:"4K HDR curved monitor.", stock:true },
+    { id:4, name:"ChargerX 65W", brand:"PowerCore", category:"Accessories", price:49, rating:4.6, image:"https://picsum.photos/id/26/300/200", desc:"GaN fast charger for all devices.", stock:true },
+    { id:5, name:"Cyber Keyboard", brand:"TechBit", category:"Peripherals", price:89, rating:4.4, image:"https://picsum.photos/id/96/300/200", desc:"Mechanical RGB keyboard.", stock:true },
+    { id:6, name:"Glide Mouse", brand:"TechBit", category:"Peripherals", price:59, rating:4.3, image:"https://picsum.photos/id/77/300/200", desc:"Ergonomic wireless mouse.", stock:false },
+    { id:7, name:"VR Headset X1", brand:"VisionX", category:"Gaming", price:499, rating:4.9, image:"https://picsum.photos/id/42/300/200", desc:"Immersive VR experience.", stock:true }
+];
 
-let currentUser = null;
-let allProducts = [];
-let filteredProducts = [];
-let currentPage = 1;
-const perPage = 9;
-let brands = new Set();
-let categories = new Set();
-let videosList = [];
-let currentLanguage = 'en';
-let searchTimeout = null;
+const videos = [
+    { id:1, title:"Quantum Smartwatch Review", desc:"See the future of wearable tech.", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", thumb:"https://picsum.photos/id/20/300/200" },
+    { id:2, title:"AeroPods Pro Unboxing", desc:"Best audio experience.", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFunflies.mp4", thumb:"https://picsum.photos/id/1/300/200" },
+    { id:3, title:"Infinity Display Review", desc:"Crisp 4K visuals.", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", thumb:"https://picsum.photos/id/0/300/200" }
+];
 
-// Offer Configuration
-const offerConfig = {
-    active: true,
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    percentage: 30,
-    description: "Special year-end discount on all products"
-};
-
-// Translations
-const translations = {
-    en: {
-        brand: "The Tech Bit", home: "Home", products: "Products", offer: "Offer", video: "Video",
-        contact: "Contact", account: "Account", settings: "Settings", appearance: "Appearance",
-        display: "Display", language: "Language", advanced: "Advanced", theme: "Theme",
-        default: "Default", light: "Light", dark: "Dark", nature: "Nature", ocean: "Ocean",
-        font_family: "Font Family", font_size: "Font Size", border_radius: "Border Radius",
-        brightness: "Brightness", contrast: "Contrast", saturation: "Saturation",
-        animation_speed: "Animation Speed", english: "English", urdu: "Urdu", roman_urdu: "Roman Urdu",
-        reset_all: "Reset All Settings", save: "Save", cancel: "Cancel"
-    },
-    ur: {
-        brand: "دی ٹیک بٹ", home: "ہوم", products: "مصنوعات", offer: "آفر", video: "ویڈیو",
-        contact: "رابطہ", account: "اکاؤنٹ", settings: "ترتیبات", appearance: "ظہور",
-        display: "ڈسپلے", language: "زبان", advanced: "اعلی", theme: "تھیم",
-        default: "طے شدہ", light: "ہلکا", dark: "گہرا", nature: "فطرت", ocean: "سمندر",
-        font_family: "فونٹ", font_size: "سائز", border_radius: "بارڈر",
-        brightness: "چمک", contrast: "کنٹراسٹ", saturation: "سیریشن",
-        animation_speed: "اینی میشن", english: "انگریزی", urdu: "اردو", roman_urdu: "رومن اردو",
-        reset_all: "ری سیٹ", save: "محفوظ کریں", cancel: "منسوخ"
-    },
-    roman: {
-        brand: "The Tech Bit", home: "Home", products: "Products", offer: "Offer", video: "Video",
-        contact: "Contact", account: "Account", settings: "Settings", appearance: "Appearance",
-        display: "Display", language: "Language", advanced: "Advanced", theme: "Theme",
-        default: "Default", light: "Light", dark: "Dark", nature: "Nature", ocean: "Ocean",
-        font_family: "Font Family", font_size: "Font Size", border_radius: "Border Radius",
-        brightness: "Brightness", contrast: "Contrast", saturation: "Saturation",
-        animation_speed: "Animation Speed", english: "English", urdu: "Urdu", roman_urdu: "Roman Urdu",
-        reset_all: "Reset All Settings", save: "Save", cancel: "Cancel"
-    }
-};
-
-// DOM Elements
-const loading = document.getElementById('loading');
-const notification = document.getElementById('notification');
-const notifyText = document.getElementById('notifyText');
+let filteredProducts = [...products];
+let currentPage = 1, itemsPerPage = 6;
+let currentUser = JSON.parse(localStorage.getItem('techbit_user')) || null;
+let videoPlayer = null;
 
 // Helper functions
+function showNotification(msg) {
+    const n = document.getElementById('notification');
+    document.getElementById('notifyText').innerText = msg;
+    n.style.display = 'block';
+    setTimeout(() => n.style.display = 'none', 3000);
+}
+
 function showLoading(show) {
-    loading.style.display = show ? 'flex' : 'none';
+    document.getElementById('loading').style.display = show ? 'flex' : 'none';
 }
 
-function showMessage(msg, isError = false) {
-    notifyText.innerText = msg;
-    notification.style.backgroundColor = isError ? '#dc3545' : '#6a11cb';
-    notification.style.display = 'block';
-    setTimeout(() => notification.style.display = 'none', 3000);
+function renderStars(rating) {
+    let full = Math.floor(rating);
+    let html = '';
+    for(let i=0;i<5;i++) html += `<i class="fas ${i<full ? 'fa-star star-filled' : 'fa-star star-empty'}"></i>`;
+    return html;
 }
 
-// ========== SETTINGS SYSTEM ==========
-function applyTheme(theme) {
-    document.body.className = '';
-    if (theme !== 'default') document.body.classList.add(`theme-${theme}`);
-    localStorage.setItem('theme', theme);
-    document.querySelectorAll('.theme-option').forEach(opt => {
-        if (opt.dataset.theme === theme) opt.classList.add('active');
-        else opt.classList.remove('active');
-    });
-}
-
-function applyLanguage(lang) {
-    currentLanguage = lang;
-    localStorage.setItem('language', lang);
-    document.querySelectorAll('[data-translate]').forEach(el => {
-        const key = el.getAttribute('data-translate');
-        if (translations[lang] && translations[lang][key]) el.innerText = translations[lang][key];
-    });
-    document.querySelectorAll('.language-option').forEach(opt => {
-        if (opt.dataset.lang === lang) opt.classList.add('active');
-        else opt.classList.remove('active');
-    });
-}
-
-function applyFontFamily(font) {
-    let fontFamily = '';
-    switch(font) {
-        case 'serif': fontFamily = 'Georgia, serif'; break;
-        case 'monospace': fontFamily = 'Courier New, monospace'; break;
-        case 'jameel': fontFamily = 'Jameel Noori Nastaleeq, "Noto Nastaliq Urdu", serif'; break;
-        default: fontFamily = '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
-    }
-    document.documentElement.style.setProperty('--font', fontFamily);
-    localStorage.setItem('fontFamily', font);
-    document.querySelectorAll('.font-option').forEach(opt => {
-        if (opt.dataset.font === font) opt.classList.add('active');
-        else opt.classList.remove('active');
-    });
-}
-
-function updateDisplayFilters() {
-    const brightness = localStorage.getItem('brightness') || '100';
-    const contrast = localStorage.getItem('contrast') || '100';
-    const saturation = localStorage.getItem('saturation') || '100';
-    document.body.style.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
-}
-
-function applySlider(id, property, unit = 'px') {
-    const slider = document.getElementById(id);
-    const valueSpan = document.getElementById(id + 'Value');
-    if (!slider) return;
-    const val = slider.value;
-    if (valueSpan) valueSpan.innerText = val + unit;
-    if (property === '--font-size') {
-        document.documentElement.style.setProperty(property, val + unit);
-        localStorage.setItem('font-size', val);
-    } else if (property === '--radius') {
-        document.documentElement.style.setProperty('--radius', val + unit);
-        localStorage.setItem('border-radius', val);
-    } else if (property === '--animation-speed') {
-        document.documentElement.style.setProperty('--animation-speed', val + 's');
-        localStorage.setItem('animation-speed', val);
-    } else {
-        localStorage.setItem(property.replace('--', ''), val);
-        updateDisplayFilters();
-    }
-}
-
-function loadSettings() {
-    const theme = localStorage.getItem('theme') || 'default';
-    applyTheme(theme);
-    const lang = localStorage.getItem('language') || 'en';
-    applyLanguage(lang);
-    const font = localStorage.getItem('fontFamily') || 'sans-serif';
-    applyFontFamily(font);
-    
-    const fontSize = localStorage.getItem('font-size') || '16';
-    document.getElementById('fontSizeSlider').value = fontSize;
-    document.getElementById('fontSizeValue').innerText = fontSize + 'px';
-    document.documentElement.style.setProperty('--font-size', fontSize + 'px');
-    
-    const borderRadius = localStorage.getItem('border-radius') || '12';
-    document.getElementById('borderRadiusSlider').value = borderRadius;
-    document.getElementById('borderRadiusValue').innerText = borderRadius + 'px';
-    document.documentElement.style.setProperty('--radius', borderRadius + 'px');
-    
-    const brightness = localStorage.getItem('brightness') || '100';
-    document.getElementById('brightnessSlider').value = brightness;
-    document.getElementById('brightnessValue').innerText = brightness + '%';
-    const contrast = localStorage.getItem('contrast') || '100';
-    document.getElementById('contrastSlider').value = contrast;
-    document.getElementById('contrastValue').innerText = contrast + '%';
-    const saturation = localStorage.getItem('saturation') || '100';
-    document.getElementById('saturationSlider').value = saturation;
-    document.getElementById('saturationValue').innerText = saturation + '%';
-    updateDisplayFilters();
-    
-    const animSpeed = localStorage.getItem('animation-speed') || '0.3';
-    document.getElementById('animSpeedSlider').value = animSpeed;
-    document.getElementById('animSpeedValue').innerText = animSpeed + 's';
-    document.documentElement.style.setProperty('--animation-speed', animSpeed + 's');
-}
-
-function resetSettings() {
-    localStorage.clear();
-    loadSettings();
-    showMessage('Settings reset to default');
-}
-
-function initSettingsModal() {
-    const modal = document.getElementById('settingsModal');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const closeBtn = document.getElementById('closeSettings');
-    settingsBtn.onclick = () => modal.style.display = 'flex';
-    closeBtn.onclick = () => modal.style.display = 'none';
-    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-    
-    document.querySelectorAll('.theme-option').forEach(opt => {
-        opt.onclick = () => applyTheme(opt.dataset.theme);
-    });
-    document.querySelectorAll('.language-option').forEach(opt => {
-        opt.onclick = () => applyLanguage(opt.dataset.lang);
-    });
-    document.querySelectorAll('.font-option').forEach(opt => {
-        opt.onclick = () => applyFontFamily(opt.dataset.font);
-    });
-    document.getElementById('fontSizeSlider').oninput = () => applySlider('fontSizeSlider', '--font-size', 'px');
-    document.getElementById('borderRadiusSlider').oninput = () => applySlider('borderRadiusSlider', '--radius', 'px');
-    document.getElementById('brightnessSlider').oninput = () => applySlider('brightnessSlider', '--brightness', '%');
-    document.getElementById('contrastSlider').oninput = () => applySlider('contrastSlider', '--contrast', '%');
-    document.getElementById('saturationSlider').oninput = () => applySlider('saturationSlider', '--saturation', '%');
-    document.getElementById('animSpeedSlider').oninput = () => applySlider('animSpeedSlider', '--animation-speed', 's');
-    document.getElementById('resetAllSettings').onclick = resetSettings;
-    
-    // Settings tabs
-    document.querySelectorAll('.settings-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            const tabName = tab.dataset.tab;
-            document.querySelectorAll('.settings-tab-content').forEach(content => content.style.display = 'none');
-            document.getElementById(tabName + 'Tab').style.display = 'block';
-        });
-    });
-}
-
-// ========== PRODUCTS & VIDEOS ==========
-async function loadProducts() {
-    showLoading(true);
-    try {
-        const res = await fetch('products.json');
-        const data = await res.json();
-        const unique = new Map();
-        data.products.forEach(p => { if (!unique.has(p.id)) unique.set(p.id, p); });
-        allProducts = Array.from(unique.values());
-        brands.clear(); categories.clear();
-        allProducts.forEach(p => {
-            if (p.brand) brands.add(p.brand);
-            if (p.category) categories.add(p.category);
-        });
-        videosList = allProducts.filter(p => p.videoUrl);
-        updateFilters();
-        filteredProducts = [...allProducts];
-        displayProducts();
-    } catch(e) {
-        console.error("Error loading products:", e);
-        allProducts = [
-            { id:1, name:"BOYA BY-MW3", brand:"BOYA", category:"Audio", price:2299, description:"Wireless mic", badge:"Bestseller", image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600", videoUrl:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", rating:4.7, features:["Wireless","Noise cancellation"] },
-            { id:2, name:"The Tech Bit Air Pro", brand:"The Tech Bit", category:"Audio", price:199, description:"Noise cancelling headphones", badge:"New", image:"https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600", videoUrl:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", rating:4.5, features:["ANC","30h battery"] },
-            { id:3, name:"Smart Watch Pro", brand:"The Tech Bit", category:"Wearables", price:349, description:"Health monitoring", badge:"Sale", image:"https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600", videoUrl:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", rating:4.8, features:["Heart rate","GPS"] }
-        ];
-        brands.clear(); categories.clear();
-        allProducts.forEach(p => { brands.add(p.brand); categories.add(p.category); });
-        videosList = allProducts.filter(p => p.videoUrl);
-        updateFilters();
-        filteredProducts = [...allProducts];
-        displayProducts();
-    }
-    showLoading(false);
-}
-
-function updateFilters() {
-    const brandSel = document.getElementById('brandFilter');
-    const catSel = document.getElementById('categoryFilter');
-    if (!brandSel) return;
-    brandSel.innerHTML = '<option value="">All Brands</option>';
-    catSel.innerHTML = '<option value="">All Categories</option>';
-    brands.forEach(b => { let opt = document.createElement('option'); opt.value = b; opt.textContent = b; brandSel.appendChild(opt); });
-    categories.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.textContent = c; catSel.appendChild(opt); });
-}
-
-function createProductCard(p) {
-    const card = document.createElement('div');
-    card.className = 'product-card';
-    let quality = '', stars = '';
-    if (p.rating >= 4.5) quality = '⭐ Premium';
-    else if (p.rating >= 3.5) quality = '✔️ Good';
-    else quality = '👍 Standard';
-    stars = '★'.repeat(Math.floor(p.rating)) + '☆'.repeat(5 - Math.floor(p.rating));
-    card.innerHTML = `
-        ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
+function renderProductCard(p) {
+    return `<div class="product-card" data-id="${p.id}">
         <div class="product-img"><img src="${p.image}" alt="${p.name}" loading="lazy"></div>
         <div class="product-info">
             <h3>${p.name}</h3>
-            <p><strong>Brand:</strong> ${p.brand} | <strong>Type:</strong> ${p.category}</p>
-            <p>${p.description.substring(0, 80)}...</p>
-            <div class="product-price">PKR ${p.price.toFixed(2)}</div>
-            <div class="product-quality">${quality} (${stars} ${p.rating})</div>
+            <div class="product-quality">${renderStars(p.rating)} ${p.rating}</div>
+            <div class="product-price">$${p.price}</div>
             <div class="product-actions">
-                ${p.videoUrl ? `<button class="btn btn-primary watch-video" data-id="${p.id}"><i class="fas fa-play-circle"></i> See Video</button>` : ''}
-                <button class="btn btn-whatsapp share-product" data-name="${p.name}"><i class="fab fa-whatsapp"></i> Share</button>
+                <button class="btn btn-primary buy-now-btn" data-id="${p.id}">Buy Now</button>
+                <button class="btn btn-secondary detail-btn" data-id="${p.id}">Details</button>
             </div>
         </div>
-    `;
-    card.addEventListener('click', (e) => {
-        if (!e.target.closest('.watch-video') && !e.target.closest('.share-product')) {
-            showProductDetail(p);
-        }
-    });
-    card.querySelectorAll('.watch-video').forEach(btn => {
-        btn.addEventListener('click', (e) => { e.stopPropagation(); playVideoById(parseInt(btn.dataset.id)); });
-    });
-    card.querySelectorAll('.share-product').forEach(btn => {
-        btn.addEventListener('click', (e) => { e.stopPropagation(); shareProduct(btn.dataset.name); });
-    });
-    return card;
+    </div>`;
 }
 
-function displayProducts() {
-    const container = document.getElementById('productsGrid');
-    const homeContainer = document.getElementById('homeProducts');
-    if (!container) return;
-    const start = (currentPage-1)*perPage;
-    const paginated = filteredProducts.slice(start, start+perPage);
-    container.innerHTML = '';
-    if (paginated.length === 0) {
-        container.innerHTML = '<div class="empty-message">No products found. Try changing your filters.</div>';
-    } else {
-        paginated.forEach(p => container.appendChild(createProductCard(p)));
+function renderProducts(gridId, productList, paginate=false, page=1) {
+    const grid = document.getElementById(gridId);
+    if(!grid) return;
+    let items = productList;
+    if(paginate) {
+        const start = (page-1)*itemsPerPage;
+        items = productList.slice(start, start+itemsPerPage);
+        const totalPages = Math.ceil(productList.length/itemsPerPage);
+        const paginationDiv = document.getElementById('pagination');
+        if(paginationDiv) {
+            paginationDiv.style.display = productList.length>itemsPerPage ? 'block' : 'none';
+            document.getElementById('pageInfo').innerText = `Page ${page} of ${totalPages||1}`;
+            document.getElementById('prevPage').disabled = page===1;
+            document.getElementById('nextPage').disabled = page===totalPages;
+        }
     }
-    if (homeContainer) {
-        homeContainer.innerHTML = '';
-        allProducts.slice(0, 3).forEach(p => homeContainer.appendChild(createProductCard(p)));
-    }
-    const totalPages = Math.ceil(filteredProducts.length / perPage);
-    const paginationDiv = document.getElementById('pagination');
-    if (totalPages > 1) {
-        paginationDiv.style.display = 'block';
-        document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${totalPages}`;
-        document.getElementById('prevPage').disabled = currentPage === 1;
-        document.getElementById('nextPage').disabled = currentPage === totalPages;
-    } else {
-        paginationDiv.style.display = 'none';
-    }
+    if(items.length===0) grid.innerHTML = '<div class="empty-message">No products found.</div>';
+    else grid.innerHTML = items.map(p=>renderProductCard(p)).join('');
+    attachProductEvents();
+}
+
+function attachProductEvents() {
+    document.querySelectorAll('.buy-now-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            const prod = products.find(p=>p.id===id);
+            if(prod) window.open(`https://wa.me/923082528844?text=I'm%20interested%20in%20${encodeURIComponent(prod.name)}%20for%20$${prod.price}`, '_blank');
+        });
+    });
+    document.querySelectorAll('.detail-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            showProductDetail(id);
+        });
+    });
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            if(!e.target.closest('.btn')) {
+                const id = parseInt(card.dataset.id);
+                showProductDetail(id);
+            }
+        });
+    });
+}
+
+function showProductDetail(id) {
+    const p = products.find(pr=>pr.id===id);
+    if(!p) return;
+    const modal = document.getElementById('productModal');
+    document.getElementById('productDetailContent').innerHTML = `
+        <img class="detail-image" src="${p.image}">
+        <h2>${p.name}</h2>
+        <div class="detail-rating">${renderStars(p.rating)} ${p.rating}</div>
+        <p><strong>Price:</strong> $${p.price}</p>
+        <p><strong>Brand:</strong> ${p.brand}</p>
+        <p><strong>Category:</strong> ${p.category}</p>
+        <p>${p.desc}</p>
+        <p><strong>Stock:</strong> ${p.stock ? 'In Stock' : 'Out of Stock'}</p>
+        <button class="btn btn-primary buy-now-detail" data-id="${p.id}">Buy Now on WhatsApp</button>
+    `;
+    modal.style.display = 'flex';
+    document.querySelector('.buy-now-detail')?.addEventListener('click', () => {
+        window.open(`https://wa.me/923082528844?text=I'm%20interested%20in%20${encodeURIComponent(p.name)}`, '_blank');
+    });
+}
+
+function initFilters() {
+    const brands = [...new Set(products.map(p=>p.brand))];
+    const cats = [...new Set(products.map(p=>p.category))];
+    const brandSel = document.getElementById('brandFilter');
+    const catSel = document.getElementById('categoryFilter');
+    if(brandSel) brandSel.innerHTML = '<option value="">All Brands</option>' + brands.map(b=>`<option value="${b}">${b}</option>`).join('');
+    if(catSel) catSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
 }
 
 function applyFilters() {
     const search = document.getElementById('searchInput').value.toLowerCase();
     const brand = document.getElementById('brandFilter').value;
     const cat = document.getElementById('categoryFilter').value;
-    filteredProducts = allProducts.filter(p => {
-        return (!search || p.name.toLowerCase().includes(search) || p.description.toLowerCase().includes(search)) &&
-               (!brand || p.brand === brand) &&
-               (!cat || p.category === cat);
-    });
+    filteredProducts = products.filter(p => (p.name.toLowerCase().includes(search) || p.brand.toLowerCase().includes(search)) && (!brand || p.brand===brand) && (!cat || p.category===cat));
     currentPage = 1;
-    displayProducts();
+    renderProducts('productsGrid', filteredProducts, true, currentPage);
 }
 
 function resetFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('brandFilter').value = '';
     document.getElementById('categoryFilter').value = '';
-    filteredProducts = [...allProducts];
+    filteredProducts = [...products];
     currentPage = 1;
-    displayProducts();
+    renderProducts('productsGrid', filteredProducts, true, currentPage);
 }
 
-function showProductDetail(p) {
-    showMessage(`Opening ${p.name} - PKR ${p.price}`, false);
-}
-
-function playVideoById(id) {
-    const product = allProducts.find(p => p.id === id);
-    if (!product || !product.videoUrl) return;
-    navigateTo('video');
-    setTimeout(() => {
-        const videoElem = document.getElementById('mainVideo');
-        if (videoElem) {
-            videoElem.src = product.videoUrl;
-            videoElem.load();
-            document.getElementById('videoTitle').innerText = product.name;
-            document.getElementById('videoDesc').innerText = product.description;
-            document.getElementById('buyVideoBtn').onclick = () => shareProduct(product.name);
-        }
-    }, 100);
-}
-
-function loadVideos() {
-    const container = document.getElementById('videoList');
-    if (!container) return;
-    container.innerHTML = '';
-    if (videosList.length === 0) {
-        container.innerHTML = '<div class="empty-message">No videos available</div>';
-        return;
-    }
-    videosList.forEach(v => {
-        const item = document.createElement('div');
-        item.className = 'video-item';
-        item.innerHTML = `
-            <div class="video-thumbnail"><i class="fas fa-play-circle"></i></div>
-            <div class="video-item-info">
-                <h4>${v.name}</h4>
-                <p>${v.description.substring(0, 80)}</p>
-            </div>
-        `;
-        item.addEventListener('click', () => playVideoById(v.id));
-        container.appendChild(item);
-    });
-}
-
-function setupVideoPlayer() {
-    const video = document.getElementById('mainVideo');
+// Video Player
+function initVideoPlayer() {
+    videoPlayer = document.getElementById('mainVideo');
     const playBtn = document.getElementById('playPauseBtn');
     const progressBar = document.getElementById('progressBar');
     const progress = document.getElementById('progress');
     const timeDisplay = document.getElementById('timeDisplay');
     const volumeSlider = document.getElementById('volumeSlider');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
-    if (!video) return;
     
-    playBtn.onclick = () => video.paused ? video.play() : video.pause();
-    video.onplay = () => playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-    video.onpause = () => playBtn.innerHTML = '<i class="fas fa-play"></i>';
-    video.onended = () => playBtn.innerHTML = '<i class="fas fa-play"></i>';
-    
-    video.ontimeupdate = () => {
-        if (video.duration && isFinite(video.duration)) {
-            progress.style.width = (video.currentTime / video.duration) * 100 + '%';
-            timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    function updateProgress() {
+        if(videoPlayer.duration) {
+            const percent = (videoPlayer.currentTime / videoPlayer.duration)*100;
+            progress.style.width = percent+'%';
+            const curM = Math.floor(videoPlayer.currentTime/60);
+            const curS = Math.floor(videoPlayer.currentTime%60);
+            const durM = Math.floor(videoPlayer.duration/60);
+            const durS = Math.floor(videoPlayer.duration%60);
+            timeDisplay.innerText = `${curM}:${curS<10?'0'+curS:curS} / ${durM}:${durS<10?'0'+durS:durS}`;
         }
-    };
-    
-    progressBar.onclick = (e) => {
+    }
+    videoPlayer.addEventListener('timeupdate', updateProgress);
+    playBtn.addEventListener('click', () => {
+        videoPlayer.paused ? videoPlayer.play() : videoPlayer.pause();
+        playBtn.innerHTML = videoPlayer.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+    });
+    progressBar.addEventListener('click', (e) => {
         const rect = progressBar.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
-        if (video.duration && isFinite(video.duration)) {
-            video.currentTime = percent * video.duration;
-        }
-    };
-    
-    volumeSlider.oninput = () => video.volume = volumeSlider.value / 100;
-    
-    fullscreenBtn.onclick = () => {
-        if (!document.fullscreenElement) {
-            video.parentElement.requestFullscreen();
-        } else {
-            document.exitFullscreen();
-        }
-    };
+        const pos = (e.clientX - rect.left)/rect.width;
+        videoPlayer.currentTime = pos * videoPlayer.duration;
+    });
+    volumeSlider.addEventListener('input', () => { videoPlayer.volume = volumeSlider.value/100; });
+    fullscreenBtn.addEventListener('click', () => { if(videoPlayer.requestFullscreen) videoPlayer.requestFullscreen(); });
+    videoPlayer.addEventListener('ended', () => { playBtn.innerHTML = '<i class="fas fa-play"></i>'; });
 }
 
-function formatTime(sec) {
-    if (isNaN(sec)) return "0:00";
-    let m = Math.floor(sec / 60);
-    let s = Math.floor(sec % 60);
-    return `${m}:${s < 10 ? '0'+s : s}`;
+function loadVideo(video) {
+    videoPlayer.src = video.url;
+    videoPlayer.load();
+    videoPlayer.play().catch(e=>console.log);
+    document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+    document.getElementById('videoTitle').innerText = video.title;
+    document.getElementById('videoDesc').innerText = video.desc;
+    document.getElementById('buyVideoBtn').onclick = () => window.open(`https://wa.me/923082528844?text=I'm%20interested%20in%20${encodeURIComponent(video.title)}`, '_blank');
 }
 
-function shareProduct(name) {
-    const url = window.location.href;
-    const text = `Check out ${name} from The Tech Bit! ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+function renderVideoList() {
+    const container = document.getElementById('videoList');
+    if(!container) return;
+    container.innerHTML = videos.map(v => `<div class="video-item" data-id="${v.id}"><div class="video-thumbnail"><i class="fas fa-play-circle"></i></div><div class="video-item-info"><h4>${v.title}</h4><p>${v.desc.substring(0,50)}...</p></div></div>`).join('');
+    document.querySelectorAll('.video-item').forEach(el => {
+        el.addEventListener('click', () => {
+            const id = parseInt(el.dataset.id);
+            const vid = videos.find(v=>v.id===id);
+            if(vid) loadVideo(vid);
+        });
+    });
+    if(videos.length) loadVideo(videos[0]);
 }
 
-function shareWebsite() {
-    shareProduct('The Tech Bit');
-}
-
-function navigateTo(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-    document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => link.classList.remove('active'));
-    document.querySelectorAll(`[data-page="${pageId}"]`).forEach(link => link.classList.add('active'));
-    if (pageId === 'products') applyFilters();
-    if (pageId === 'video') { loadVideos(); setupVideoPlayer(); }
-    if (pageId === 'offer') updateOfferPage();
-    closeMobileMenu();
-}
-
-function closeMobileMenu() {
-    document.getElementById('navLinks').classList.remove('active');
-}
-
+// Auth
 function renderAuth() {
     const container = document.getElementById('authContainer');
-    container.innerHTML = `
-        <div style="display:flex; gap:10px; margin-bottom:20px;">
-            <button id="loginTabBtn" class="btn btn-primary" style="flex:1">Login</button>
-            <button id="signupTabBtn" class="btn btn-secondary" style="flex:1">Sign Up</button>
-        </div>
-        <div id="loginForm">
-            <input type="email" id="loginEmail" placeholder="Email" class="form-control" style="margin-bottom:10px;">
-            <input type="password" id="loginPass" placeholder="Password" class="form-control" style="margin-bottom:10px;">
-            <button id="doLogin" class="btn btn-primary">Login</button>
-        </div>
-        <div id="signupForm" style="display:none;">
-            <input type="text" id="signupName" placeholder="Full Name" class="form-control" style="margin-bottom:10px;">
-            <input type="email" id="signupEmail" placeholder="Email" class="form-control" style="margin-bottom:10px;">
-            <input type="password" id="signupPass" placeholder="Password" class="form-control" style="margin-bottom:10px;">
-            <button id="doSignup" class="btn btn-primary">Sign Up</button>
-        </div>
-    `;
-    document.getElementById('loginTabBtn').onclick = () => { document.getElementById('loginForm').style.display='block'; document.getElementById('signupForm').style.display='none'; };
-    document.getElementById('signupTabBtn').onclick = () => { document.getElementById('loginForm').style.display='none'; document.getElementById('signupForm').style.display='block'; };
-    document.getElementById('doLogin').onclick = () => showMessage('Demo: Login successful', false);
-    document.getElementById('doSignup').onclick = () => showMessage('Demo: Account created', false);
-}
-
-function updateOfferPage() {
-    if (offerConfig.active) {
-        document.getElementById('offerPercentage').innerText = `${offerConfig.percentage}% OFF`;
-        document.getElementById('offerText').innerText = `On all The Tech Bit products`;
-        document.getElementById('offerDescription').innerText = offerConfig.description;
+    if(!container) return;
+    if(currentUser) {
+        container.innerHTML = `<div style="text-align:center"><i class="fas fa-user-circle fa-3x"></i><h3>Welcome ${currentUser.name}</h3><p>Email: ${currentUser.email}</p><button id="logoutBtn" class="btn btn-primary">Logout</button></div>`;
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            localStorage.removeItem('techbit_user');
+            currentUser = null;
+            renderAuth();
+            showNotification('Logged out');
+        });
+    } else {
+        container.innerHTML = `<form id="loginForm"><div class="form-group"><label>Name</label><input id="authName" class="form-control" required></div><div class="form-group"><label>Email</label><input id="authEmail" class="form-control" type="email" required></div><button type="submit" class="btn btn-primary">Login / Register</button></form>`;
+        document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('authName').value;
+            const email = document.getElementById('authEmail').value;
+            if(name && email) {
+                currentUser = { name, email };
+                localStorage.setItem('techbit_user', JSON.stringify(currentUser));
+                renderAuth();
+                showNotification(`Welcome ${name}!`);
+            }
+        });
     }
 }
 
-function setupContact() {
-    // Initialize EmailJS
-    emailjs.init("q_cI26sBuHJYeJ7OG");
-    
+// Settings
+function applySettings() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const fontSize = localStorage.getItem('fontSize') || 'medium';
+    const animSpeed = localStorage.getItem('animSpeed') || '0.3s';
+    document.body.className = `theme-${theme}`;
+    document.documentElement.style.setProperty('--animation-speed', animSpeed);
+    const fontSizes = { small:'14px', medium:'16px', large:'18px' };
+    document.body.style.fontSize = fontSizes[fontSize];
+    const themeSelect = document.getElementById('themeSelect');
+    const fontSizeSelect = document.getElementById('fontSizeSelect');
+    const animSpeedSelect = document.getElementById('animSpeedSelect');
+    if(themeSelect) themeSelect.value = theme;
+    if(fontSizeSelect) fontSizeSelect.value = fontSize;
+    if(animSpeedSelect) animSpeedSelect.value = animSpeed;
+}
+
+function initSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const closeBtn = document.getElementById('closeSettings');
+    if(settingsBtn) settingsBtn.onclick = () => modal.style.display = 'flex';
+    if(closeBtn) closeBtn.onclick = () => modal.style.display = 'none';
+    const themeSelect = document.getElementById('themeSelect');
+    const fontSizeSelect = document.getElementById('fontSizeSelect');
+    const animSpeedSelect = document.getElementById('animSpeedSelect');
+    if(themeSelect) themeSelect.onchange = (e) => { localStorage.setItem('theme', e.target.value); applySettings(); };
+    if(fontSizeSelect) fontSizeSelect.onchange = (e) => { localStorage.setItem('fontSize', e.target.value); applySettings(); };
+    if(animSpeedSelect) animSpeedSelect.onchange = (e) => { localStorage.setItem('animSpeed', e.target.value); applySettings(); };
+    window.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+}
+
+// Navigation
+function navigateTo(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => {
+        link.classList.remove('active');
+        if(link.dataset.page === pageId) link.classList.add('active');
+    });
+    if(pageId === 'products') renderProducts('productsGrid', filteredProducts, true, currentPage);
+    if(pageId === 'home') renderProducts('homeProducts', products.slice(0,3), false);
+    if(pageId === 'video') renderVideoList();
+    if(pageId === 'auth') renderAuth();
+}
+
+// Contact Form (mock)
+function initContactForm() {
     const form = document.getElementById('contactForm');
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('contactName').value;
-        const email = document.getElementById('contactEmail').value;
-        const phone = document.getElementById('contactPhone').value;
-        const subject = document.getElementById('contactSubject').value;
-        const message = document.getElementById('contactMessage').value;
-        
-        showLoading(true);
-        try {
-            await emailjs.send("service_n2r2our", "template_rqvrxoh", {
-                from_name: name,
-                from_email: email,
-                phone: phone,
-                subject: subject,
-                message: message
-            });
-            showMessage('Message sent successfully! We will contact you soon.', false);
-            form.reset();
-        } catch (error) {
-            console.error("EmailJS error:", error);
-            showMessage('Failed to send message. Please try again later.', true);
-        } finally {
-            showLoading(false);
-        }
+    if(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('contactName').value;
+            showLoading(true);
+            setTimeout(() => {
+                showLoading(false);
+                showNotification(`Thanks ${name}, we'll reply soon!`);
+                form.reset();
+            }, 800);
+        });
+    }
+}
+
+// Share
+const shareBtn = document.getElementById('shareSite');
+if(shareBtn) {
+    shareBtn.addEventListener('click', () => {
+        if(navigator.share) navigator.share({ title: 'The Tech Bit', url: window.location.href });
+        else { navigator.clipboard.writeText(window.location.href); showNotification('Link copied!'); }
     });
 }
 
-function bindEvents() {
+// Event Listeners on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    initFilters();
+    resetFilters();
+    renderProducts('productsGrid', filteredProducts, true, 1);
+    renderProducts('homeProducts', products.slice(0,3), false);
+    initVideoPlayer();
+    renderVideoList();
+    initContactForm();
+    renderAuth();
+    initSettingsModal();
+    applySettings();
+
     document.getElementById('applyFilters')?.addEventListener('click', applyFilters);
     document.getElementById('resetFilters')?.addEventListener('click', resetFilters);
-    document.getElementById('prevPage')?.addEventListener('click', () => { if(currentPage>1){ currentPage--; displayProducts(); } });
-    document.getElementById('nextPage')?.addEventListener('click', () => { if(currentPage < Math.ceil(filteredProducts.length/perPage)){ currentPage++; displayProducts(); } });
+    document.getElementById('prevPage')?.addEventListener('click', () => { if(currentPage>1) { currentPage--; renderProducts('productsGrid', filteredProducts, true, currentPage); } });
+    document.getElementById('nextPage')?.addEventListener('click', () => { const total=Math.ceil(filteredProducts.length/itemsPerPage); if(currentPage<total) { currentPage++; renderProducts('productsGrid', filteredProducts, true, currentPage); } });
+
+    document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.dataset.page;
+            if(page) navigateTo(page);
+        });
+    });
+
+    document.getElementById('menuBtn')?.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.toggle('active');
+    });
+
     document.getElementById('homeVideoBtn')?.addEventListener('click', () => navigateTo('video'));
     document.getElementById('homeProductsBtn')?.addEventListener('click', () => navigateTo('products'));
     document.getElementById('offerVideoBtn')?.addEventListener('click', () => navigateTo('video'));
     document.getElementById('offerProductsBtn')?.addEventListener('click', () => navigateTo('products'));
-    document.getElementById('shareSite')?.addEventListener('click', shareWebsite);
-    document.getElementById('menuBtn')?.addEventListener('click', () => document.getElementById('navLinks').classList.toggle('active'));
-    document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = link.getAttribute('data-page');
-            if (page) navigateTo(page);
-        });
-    });
-    document.getElementById('searchInput')?.addEventListener('input', () => {
-        if (searchTimeout) clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(applyFilters, 300);
-    });
-    setupContact();
-    renderAuth();
-    setupVideoPlayer();
-    initSettingsModal();
-    loadSettings();
-    updateOfferPage();
-}
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadProducts();
-    bindEvents();
+    const modal = document.getElementById('productModal');
+    document.querySelector('.modal-close')?.addEventListener('click', () => modal.style.display = 'none');
+    window.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
 });
+
+// Service Worker registration
+if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
+}
