@@ -69,7 +69,7 @@ nav {
 }
 .logo { font-size: 1.5rem; font-weight: bold; display: flex; gap: 8px; }
 .logo img {
-    height: 10px;    /* اس نمبر کو اپنی مرضی سے بدلیں */
+    height: 40px;    /* اس نمبر کو اپنی مرضی سے بدلیں */
     width: auto;     /* چوڑائی خودکار رہے گی */
     border-radius: 6px;  /* ہلکا گول کنارہ، اختیاری */
 }
