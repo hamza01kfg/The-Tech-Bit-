@@ -2,7 +2,8 @@
   "name": "The Tech Bit",
   "short_name": "TechBit",
   "description": "Innovative tech products and services",
-  "start_url": "/",
+  "start_url": "/The-Tech-Bit-/",
+  "scope": "/The-Tech-Bit-/"
   "display": "standalone",
   "background_color": "#6a11cb",
   "theme_color": "#6a11cb",
