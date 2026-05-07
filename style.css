@@ -69,9 +69,9 @@ nav {
 }
 .logo { font-size: 1.5rem; font-weight: bold; display: flex; gap: 8px; }
 .logo img {
-    height: 40px;    /* اس نمبر کو اپنی مرضی سے بدلیں */
-    width: auto;     /* چوڑائی خودکار رہے گی */
-    border-radius: 6px;  /* ہلکا گول کنارہ، اختیاری */
+    height: 45px;
+    width: auto;
+    border-radius: 6px;
 }
 .mobile-menu-btn { display: none; background: none; border: none; color: white; font-size: 1.5rem; }
 .nav-links { display: flex; list-style: none; gap: 16px; }
