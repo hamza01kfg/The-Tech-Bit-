@@ -69,7 +69,7 @@ nav {
 }
 .logo { font-size: 1.5rem; font-weight: bold; display: flex; gap: 8px; }
 .logo img {
-    height: 50px;
+    height: 30px;
     width: auto;
     border-radius: 6px;
 }
