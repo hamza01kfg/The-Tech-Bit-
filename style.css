@@ -69,9 +69,9 @@ nav {
 }
 .logo { font-size: 1.5rem; font-weight: bold; display: flex; gap: 8px; }
 .logo img {
-    height: 20px;
-    width: auto;
-    border-radius: 4px;
+    height: 10px;    /* اس نمبر کو اپنی مرضی سے بدلیں */
+    width: auto;     /* چوڑائی خودکار رہے گی */
+    border-radius: 6px;  /* ہلکا گول کنارہ، اختیاری */
 }
 .mobile-menu-btn { display: none; background: none; border: none; color: white; font-size: 1.5rem; }
 .nav-links { display: flex; list-style: none; gap: 16px; }
@@ -442,4 +442,10 @@ footer p { margin-top: 6px; font-size: 0.9rem; opacity: 0.85; }
     .nav-links.active { transform: translateX(0); }
     .mobile-bottom-nav { display: block; }
     main { padding-bottom: 80px; }
+}
+/* صرف PWA (انسٹالڈ ایپ) میں فوٹر مکمل طور پر چھپائیں */
+@media all and (display-mode: standalone) {
+    footer {
+        display: none;
+    }
 }
