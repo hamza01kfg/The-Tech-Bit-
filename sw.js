@@ -1,7 +1,7 @@
 // Service Worker for The Tech Bit PWA
 // یہ فائل GitHub Pages کے سب فولڈر میں کام کرنے کے لیے ترتیب دی گئی ہے
 
-const CACHE_NAME = 'thetechbit-v3';
+const CACHE_NAME = 'thetechbit-v4';
 const BASE_PATH = '/The-Tech-Bit-';  // 👈 اپنے ریپو کے نام کے مطابق
 
 // وہ تمام فائلیں جو پہلے سے کیش (cache) کرنی ہیں
