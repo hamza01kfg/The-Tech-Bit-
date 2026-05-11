@@ -349,47 +349,99 @@ function navigateTo(pageId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Contact Form with EmailJS
+// Contact Form with EmailJS + REAL Cancel (AbortController)
 function initContactForm() {
     const form = document.getElementById('contactForm');
-    if (!form) return;
+    const submitBtn = document.getElementById('contactSubmitBtn');
+    const cancelBtn = document.getElementById('cancelContactBtn');
+
+    if (!form || !submitBtn || !cancelBtn) return;
+
+    let abortController = null;   // موجودہ ریکوئسٹ کا کنٹرولر
+
+    // Cancel بٹن کا کلک ایونٹ
+    cancelBtn.addEventListener('click', () => {
+        if (abortController) {
+            abortController.abort();   // نیٹ ورک ریکوئسٹ منسوخ
+            showNotification('Message sending cancelled.');
+            // بٹن فوراً بحال
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+            submitBtn.disabled = false;
+            cancelBtn.style.display = 'none';
+            abortController = null;
+        }
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // اگر پہلے سے ارسال جاری ہو تو روکیں
+        if (submitBtn.disabled) return;
+
         const name = document.getElementById('contactName').value.trim();
         const email = document.getElementById('contactEmail').value.trim();
         const phone = document.getElementById('contactPhone').value.trim();
         const subject = document.getElementById('contactSubject').value.trim();
         const message = document.getElementById('contactMessage').value.trim();
+
         if (!name || !email || !subject || !message) {
             showNotification('Please fill all required fields.', true);
             return;
         }
-        showLoading(true);
-        const btn = document.getElementById('contactSubmitBtn');
-        if (btn) btn.disabled = true;
+
+        // بھیجنے کی حالت
+        const originalSubmitHTML = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        submitBtn.disabled = true;
+        cancelBtn.style.display = 'inline-block';
+
+        // نیا AbortController بنائیں
+        abortController = new AbortController();
 
         try {
             if (typeof emailjs !== 'undefined') {
-                await emailjs.send("service_n2r2our", "template_rqvrxoh", {
-                    from_name: name,
-                    from_email: email,
-                    phone: phone,
-                    subject: subject,
-                    message: message,
-                    to_name: "The Tech Bit Team"
-                });
+                await emailjs.send(
+                    "service_n2r2our",
+                    "template_rqvrxoh",
+                    {
+                        from_name: name,
+                        from_email: email,
+                        phone: phone,
+                        subject: subject,
+                        message: message,
+                        to_name: "The Tech Bit Team"
+                    },
+                    { signal: abortController.signal }  // 👈 یہ ہے اصل جادو
+                );
             } else {
-                // Fallback: simulate delay
-                await new Promise(resolve => setTimeout(resolve, 800));
+                // فیل بیک: مصنوعی تاخیر — یہاں بھی abort چیک کرسکتے ہیں
+                await new Promise((resolve, reject) => {
+                    const timer = setTimeout(resolve, 800);
+                    abortController.signal.addEventListener('abort', () => {
+                        clearTimeout(timer);
+                        reject(new DOMException('Aborted', 'AbortError'));
+                    });
+                });
             }
+
+            // اگر یہاں پہنچے تو کامیابی (abort نہیں ہوا)
             showNotification(`Thanks ${name}, we'll reply soon!`);
             form.reset();
         } catch (error) {
+            if (error.name === 'AbortError') {
+                // صارف نے خو Cancel کیا — یہاں کوئی ایکشن نہیں
+                return; // بٹن پہلے ہی Cancel event میں بحال ہو چکا
+            }
             console.error('Contact form error:', error);
             showNotification('Failed to send message. Please try WhatsApp instead.', true);
         } finally {
-            showLoading(false);
-            if (btn) btn.disabled = false;
+            // اگر ابورٹ نہیں ہوا تو بٹن بحال کریں
+            if (!abortController || !abortController.signal.aborted) {
+                submitBtn.innerHTML = originalSubmitHTML;
+                submitBtn.disabled = false;
+                cancelBtn.style.display = 'none';
+            }
+            abortController = null; // صفائی
         }
     });
 }
@@ -499,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Service Worker registration
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(reg => {
+        navigator.serviceWorker.register('/The-Tech-Bit-/sw.js').then(reg => {
             console.log('Service Worker registered:', reg.scope);
         }).catch(err => {
             console.log('Service Worker registration failed:', err);
