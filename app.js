@@ -558,3 +558,10 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
+// اگر PWA (standalone) موڈ میں چل رہا ہے تو فوٹر چھپا دیں
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    const footer = document.querySelector('footer');
+    if (footer) {
+        footer.style.display = 'none';
+    }
+}
