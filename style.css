@@ -450,9 +450,10 @@ footer p { margin-top: 6px; font-size: 0.9rem; opacity: 0.85; }
     .mobile-bottom-nav { display: block; }
     main { padding-bottom: 80px; }
 }
-/* صرف PWA (انسٹالڈ ایپ) میں فوٹر مکمل طور پر چھپائیں */
+/* PWA (انسٹالڈ ایپ) میں فوٹر کو پوری طاقت سے چھپائیں */
 @media all and (display-mode: standalone) {
+    body > footer,
     footer {
-        display: none;
+        display: none !important;
     }
 }
