@@ -565,3 +565,16 @@ if (window.matchMedia('(display-mode: standalone)').matches) {
         footer.style.display = 'none';
     }
 }
+// لوگو اوورلے دکھانے/چھپانے کا نظام
+const overlay = document.getElementById('logoOverlay');
+if (overlay) {
+    // اوورلے پہلے سے نظر آتا ہے (CSS کی وجہ سے)
+    // 2.5 سیکنڈ بعد اسے چھپائیں
+    setTimeout(() => {
+        overlay.classList.add('hide-overlay');
+        // چھپنے کے بعد DOM سے ہٹانا (optional)
+        overlay.addEventListener('transitionend', () => {
+            overlay.remove();  // اوورلے کو صفحے سے نکال دیں
+        });
+    }, 2500);  // 2.5 سیکنڈ (آپ چاہیں تو گھٹا یا بڑھا سکتے ہیں)
+}
