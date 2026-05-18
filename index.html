@@ -68,7 +68,7 @@
     .twb-chat-window {
         position: fixed;
         bottom: 100px;
-        right: 20px;
+        right: 10px;
         width: 330px;
         max-width: 92vw;
         max-height: 80vh;
@@ -316,6 +316,7 @@
 
 <script>
     (function() {
+        // DOM elements
         const btn = document.getElementById('twbBtn');
         const chat = document.getElementById('twbChatWindow');
         const closeBtn = document.getElementById('twbClose');
@@ -327,40 +328,169 @@
         const emojiPanel = document.getElementById('twbEmojiPanel');
         const fileInput = document.getElementById('twbFileInput');
 
-        // چیٹ کھولیں/بند کریں
-        btn.addEventListener('click', () => {
+        // ----- Draggable Button Logic -----
+        let isDragging = false;
+        let dragStartX = 0, dragStartY = 0;
+        let startLeft = 0, startTop = 0;
+        
+        // Load saved position (stored as left, top percentages or px? Use viewport-relative)
+        function loadButtonPosition() {
+            const saved = localStorage.getItem('twbBtnPos');
+            if (saved) {
+                try {
+                    const pos = JSON.parse(saved);
+                    btn.style.left = pos.left;
+                    btn.style.top = pos.top;
+                    btn.style.right = 'auto';
+                    btn.style.bottom = 'auto';
+                } catch(e) {}
+            } else {
+                // default: right:20px, bottom:90px
+                btn.style.right = '20px';
+                btn.style.bottom = '90px';
+                btn.style.left = 'auto';
+                btn.style.top = 'auto';
+            }
+        }
+        
+        function saveButtonPosition() {
+            const rect = btn.getBoundingClientRect();
+            const pos = {
+                left: rect.left + 'px',
+                top: rect.top + 'px'
+            };
+            localStorage.setItem('twbBtnPos', JSON.stringify(pos));
+        }
+        
+        function onDragStart(e) {
+            // Prevent drag from interfering with button click (only if moved beyond threshold)
+            const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+            const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+            dragStartX = clientX;
+            dragStartY = clientY;
+            
+            const rect = btn.getBoundingClientRect();
+            startLeft = rect.left;
+            startTop = rect.top;
+            
+            isDragging = false; // will become true after movement threshold
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('mouseup', onDragEnd);
+            document.addEventListener('touchmove', onDragMove, { passive: false });
+            document.addEventListener('touchend', onDragEnd);
+            e.preventDefault();
+        }
+        
+        let moveThreshold = 5; // pixels
+        let hasMoved = false;
+        
+        function onDragMove(e) {
+            const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+            const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+            const dx = clientX - dragStartX;
+            const dy = clientY - dragStartY;
+            
+            if (!hasMoved && (Math.abs(dx) > moveThreshold || Math.abs(dy) > moveThreshold)) {
+                hasMoved = true;
+                isDragging = true;
+                // Prevent text selection while dragging
+                document.body.style.userSelect = 'none';
+            }
+            
+            if (isDragging) {
+                e.preventDefault();
+                let newLeft = startLeft + dx;
+                let newTop = startTop + dy;
+                // Keep within viewport edges (with some margin)
+                const btnWidth = btn.offsetWidth;
+                const btnHeight = btn.offsetHeight;
+                newLeft = Math.min(window.innerWidth - btnWidth - 10, Math.max(10, newLeft));
+                newTop = Math.min(window.innerHeight - btnHeight - 10, Math.max(10, newTop));
+                btn.style.left = newLeft + 'px';
+                btn.style.top = newTop + 'px';
+                btn.style.right = 'auto';
+                btn.style.bottom = 'auto';
+            }
+        }
+        
+        function onDragEnd(e) {
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+            document.removeEventListener('touchmove', onDragMove);
+            document.removeEventListener('touchend', onDragEnd);
+            document.body.style.userSelect = '';
+            
+            if (isDragging) {
+                saveButtonPosition();
+                // Reset drag flags after short delay to prevent click event
+                setTimeout(() => { isDragging = false; hasMoved = false; }, 50);
+            } else {
+                hasMoved = false;
+            }
+            isDragging = false;
+        }
+        
+        // Attach drag events
+        btn.addEventListener('mousedown', onDragStart);
+        btn.addEventListener('touchstart', onDragStart, { passive: false });
+        
+        // Ensure click toggles chat only if not dragged
+        let originalClick = null;
+        btn.addEventListener('click', (e) => {
+            if (isDragging || hasMoved) {
+                e.stopPropagation();
+                return;
+            }
+            // Toggle chat window
             chat.style.display = chat.style.display === 'flex' ? 'none' : 'flex';
-            emojiPanel.style.display = 'none'; // پینل بند
+            emojiPanel.style.display = 'none';
         });
-
+        
+        // Load saved position on page load
+        loadButtonPosition();
+        // Optional: adjust on window resize to keep within bounds
+        window.addEventListener('resize', () => {
+            const left = parseInt(btn.style.left);
+            const top = parseInt(btn.style.top);
+            if (!isNaN(left) && !isNaN(top)) {
+                const btnWidth = btn.offsetWidth;
+                const btnHeight = btn.offsetHeight;
+                let newLeft = Math.min(window.innerWidth - btnWidth - 10, Math.max(10, left));
+                let newTop = Math.min(window.innerHeight - btnHeight - 10, Math.max(10, top));
+                if (newLeft !== left || newTop !== top) {
+                    btn.style.left = newLeft + 'px';
+                    btn.style.top = newTop + 'px';
+                    saveButtonPosition();
+                }
+            }
+        });
+        
+        // ----- Existing chat logic (unchanged) -----
         closeBtn.addEventListener('click', () => {
             chat.style.display = 'none';
             emojiPanel.style.display = 'none';
         });
-
+        
         document.addEventListener('click', (e) => {
             if (!chat.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
                 chat.style.display = 'none';
                 emojiPanel.style.display = 'none';
             }
         });
-
-        // پیغام بھیجیں
+        
         function sendMessage() {
             const text = input.value.trim();
             if (!text) return;
-
             const msgDiv = document.createElement('div');
             msgDiv.className = 'twb-message sent';
             msgDiv.textContent = text;
             chatBody.appendChild(msgDiv);
             chatBody.scrollTop = chatBody.scrollHeight;
-
             const phone = '923082528844';
             window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(text), '_blank');
             input.value = '';
         }
-
+        
         sendBtn.addEventListener('click', sendMessage);
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -368,28 +498,25 @@
                 sendMessage();
             }
         });
-
-        // اٹیچمنٹ: فائل سلیکٹر کھولیں
+        
         attachBtn.addEventListener('click', () => {
             fileInput.click();
         });
-
+        
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
                 const fileName = fileInput.files[0].name;
                 const currentText = input.value;
                 input.value = currentText + (currentText ? ' ' : '') + '[فائل: ' + fileName + ']';
-                fileInput.value = ''; // دوبارہ استعمال کے لیے صاف
+                fileInput.value = '';
             }
         });
-
-        // ایموجی پینل کھولیں/بند کریں
+        
         emojiBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             emojiPanel.style.display = emojiPanel.style.display === 'flex' ? 'none' : 'flex';
         });
-
-        // ایموجی پر کلک کرکے ان پٹ میں ڈالیں
+        
         emojiPanel.querySelectorAll('span').forEach(emoji => {
             emoji.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -398,20 +525,18 @@
                 const textBefore = input.value.substring(0, cursorPos);
                 const textAfter = input.value.substring(cursorPos);
                 input.value = textBefore + emojiChar + textAfter;
-                // کرسر کو ایموجی کے بعد لے جائیں
                 input.selectionStart = input.selectionEnd = cursorPos + emojiChar.length;
                 input.focus();
                 emojiPanel.style.display = 'none';
             });
         });
-
-        // ایموجی پینل کے باہر کلک کرنے پر بند
+        
         document.addEventListener('click', (e) => {
             if (!emojiPanel.contains(e.target) && e.target !== emojiBtn) {
                 emojiPanel.style.display = 'none';
             }
         });
-
+        
         chat.style.display = 'none';
     })();
 </script>
@@ -420,7 +545,7 @@
 
 <!-- ========== لوگو اینیمیشن اوورلے ========== -->
 <div id="logoOverlay">
-    <img src="Images/logos/web-logo-512.png" alt="The Tech Bit" class="logo-animate">
+    <img src="Images/logos/logo-animation.gif" alt="The Tech Bit" class="logo-animate">
 </div>
 
 <header>
@@ -628,6 +753,12 @@
 </footer>
 
 <div class="notification" id="notification"><span id="notifyText"></span></div>
+
+<!-- ✅ Fixed: Added Loading Spinner Element -->
+<div id="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+</div>
 
 <script src="app.js"></script>
 </body>

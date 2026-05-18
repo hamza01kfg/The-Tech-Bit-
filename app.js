@@ -114,24 +114,29 @@ function goToPage(page) {
 }
 
 function attachProductEvents() {
+    // Buy Now بٹن کا نیا ایونٹ
     document.querySelectorAll('.buy-now-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = parseInt(btn.dataset.id);
             const prod = products.find(p => p.id === id);
             if (prod) {
-                window.open(`https://wa.me/923082528844?text=I'm%20interested%20in%20${encodeURIComponent(prod.name)}%20for%20$${prod.price}`, '_blank');
+                shareProduct(prod);  // 👈 نیا شیئر فنکشن کال کریں
             }
         });
     });
-    document.querySelectorAll('.detail-btn').forEach(btn => {
+    // Buy Now بٹن کا نیا ایونٹ
+    document.querySelectorAll('.buy-now-detail').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = parseInt(btn.dataset.id);
-            showProductDetail(id);
+            const prod = products.find(p => p.id === id);
+            if (prod) {
+                shareProduct(prod);  // 👈 نیا شیئر فنکشن کال کریں
+            }
         });
     });
-    document.querySelectorAll('.product-card').forEach(card => {
+        document.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', (e) => {
             if (!e.target.closest('.btn')) {
                 const id = parseInt(card.dataset.id);
@@ -162,6 +167,49 @@ function showProductDetail(id) {
     document.querySelector('.buy-now-detail')?.addEventListener('click', () => {
         window.open(`https://wa.me/923082528844?text=I'm%20interested%20in%20${encodeURIComponent(p.name)}`, '_blank');
     });
+}
+
+async function shareProduct(product) {
+    // پہلے چیک کریں کہ Web Share API فائلوں کے ساتھ سپورٹ کرتا ہے یا نہیں
+    if (navigator.share && navigator.canShare) {
+        try {
+            // تصویر کو fetch کر کے Blob میں تبدیل کریں
+            const response = await fetch(product.image);
+            const blob = await response.blob();
+            const file = new File([blob], `${product.name}.jpg`, { type: blob.type || 'image/jpeg' });
+            
+            const shareData = {
+                title: product.name,
+                text: `🔥 *${product.name}*\n💰 Price: $${product.price.toFixed(2)}\n📝 ${product.description}\n🛒 *Buy now at The Tech Bit!*`,
+                files: [file]
+            };
+            
+            // چیک کریں کہ ڈیٹا شیئر کیا جا سکتا ہے
+            if (navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                // فائلز کے ساتھ شیئر نہیں ہو سکتا، صرف ٹیکسٹ فال بیک
+                const textOnly = `${product.name}\nPrice: $${product.price.toFixed(2)}\n${product.description}\nImage: ${product.image}`;
+                if (navigator.share) {
+                    await navigator.share({ title: product.name, text: textOnly });
+                } else {
+                    // فال بیک: براہ راست واٹس ایپ لنک (تصویر کے بغیر)
+                    window.open(`https://wa.me/923082528844?text=${encodeURIComponent(textOnly)}`, '_blank');
+                }
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Share failed:', err);
+                // فال بیک: واٹس ایپ لنک
+                const fallbackText = `${product.name}\nPrice: $${product.price.toFixed(2)}\n${product.description}`;
+                window.open(`https://wa.me/923082528844?text=${encodeURIComponent(fallbackText)}`, '_blank');
+            }
+        }
+    } else {
+        // Web Share API دستیاب نہیں (ڈیسک ٹاپ)، پرانا طریقہ
+        const text = `${product.name}\nPrice: $${product.price.toFixed(2)}\n${product.description}\nImage: ${product.image}`;
+        window.open(`https://wa.me/923082528844?text=${encodeURIComponent(text)}`, '_blank');
+    }
 }
 
 function initFilters() {
@@ -349,7 +397,7 @@ function navigateTo(pageId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Contact Form with EmailJS + REAL Cancel (AbortController)
+// Contact Form with EmailJS + Cancel flag (request cannot be truly aborted, but UI cancels)
 function initContactForm() {
     const form = document.getElementById('contactForm');
     const submitBtn = document.getElementById('contactSubmitBtn');
@@ -357,26 +405,26 @@ function initContactForm() {
 
     if (!form || !submitBtn || !cancelBtn) return;
 
-    let abortController = null;   // موجودہ ریکوئسٹ کا کنٹرولر
+    let isSending = false;
+    let isCancelled = false;
 
-    // Cancel بٹن کا کلک ایونٹ
+    // Cancel button: just prevent showing success/failure notification
     cancelBtn.addEventListener('click', () => {
-        if (abortController) {
-            abortController.abort();   // نیٹ ورک ریکوئسٹ منسوخ
-            showNotification('Message sending cancelled.');
-            // بٹن فوراً بحال
+        if (isSending) {
+            isCancelled = true;
+            showNotification('Message sending cancelled (request may still complete).');
+            // Reset UI
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
             submitBtn.disabled = false;
             cancelBtn.style.display = 'none';
-            abortController = null;
+            isSending = false;
         }
     });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // اگر پہلے سے ارسال جاری ہو تو روکیں
-        if (submitBtn.disabled) return;
+        if (isSending) return;
 
         const name = document.getElementById('contactName').value.trim();
         const email = document.getElementById('contactEmail').value.trim();
@@ -389,14 +437,13 @@ function initContactForm() {
             return;
         }
 
-        // بھیجنے کی حالت
+        // Start sending
+        isSending = true;
+        isCancelled = false;
         const originalSubmitHTML = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         submitBtn.disabled = true;
         cancelBtn.style.display = 'inline-block';
-
-        // نیا AbortController بنائیں
-        abortController = new AbortController();
 
         try {
             if (typeof emailjs !== 'undefined') {
@@ -410,38 +457,35 @@ function initContactForm() {
                         subject: subject,
                         message: message,
                         to_name: "The Tech Bit Team"
-                    },
-                    { signal: abortController.signal }  // 👈 یہ ہے اصل جادو
+                    }
+                    // No abort signal - EmailJS SDK doesn't support it
                 );
             } else {
-                // فیل بیک: مصنوعی تاخیر — یہاں بھی abort چیک کرسکتے ہیں
-                await new Promise((resolve, reject) => {
-                    const timer = setTimeout(resolve, 800);
-                    abortController.signal.addEventListener('abort', () => {
-                        clearTimeout(timer);
-                        reject(new DOMException('Aborted', 'AbortError'));
-                    });
-                });
+                // Simulate delay (for demo)
+                await new Promise(resolve => setTimeout(resolve, 800));
             }
 
-            // اگر یہاں پہنچے تو کامیابی (abort نہیں ہوا)
-            showNotification(`Thanks ${name}, we'll reply soon!`);
-            form.reset();
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                // صارف نے خو Cancel کیا — یہاں کوئی ایکشن نہیں
-                return; // بٹن پہلے ہی Cancel event میں بحال ہو چکا
+            // If not cancelled, show success
+            if (!isCancelled) {
+                showNotification(`Thanks ${name}, we'll reply soon!`);
+                form.reset();
+            } else {
+                showNotification('Message sending was cancelled.', true);
             }
-            console.error('Contact form error:', error);
-            showNotification('Failed to send message. Please try WhatsApp instead.', true);
+        } catch (error) {
+            if (!isCancelled) {
+                console.error('Contact form error:', error);
+                showNotification('Failed to send message. Please try WhatsApp instead.', true);
+            }
         } finally {
-            // اگر ابورٹ نہیں ہوا تو بٹن بحال کریں
-            if (!abortController || !abortController.signal.aborted) {
+            // Reset UI only if not already reset by cancel
+            if (!isCancelled) {
                 submitBtn.innerHTML = originalSubmitHTML;
                 submitBtn.disabled = false;
                 cancelBtn.style.display = 'none';
             }
-            abortController = null; // صفائی
+            isSending = false;
+            isCancelled = false;
         }
     });
 }

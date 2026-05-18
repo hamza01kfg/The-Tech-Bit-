@@ -469,11 +469,11 @@ footer p { margin-top: 6px; font-size: 0.9rem; opacity: 0.85; }
     align-items: center;
     justify-content: center;
     z-index: 99999;                    /* ہر چیز کے اوپر */
-    transition: opacity 0.6s ease, visibility 0.6s ease;
+    transition: opacity 1.0s ease, visibility 1.0s ease;
 }
 
 .logo-animate {
-    width: 180px;                      /* لوگو کا سائز */
+    width: 1440px;                      /* لوگو کا سائز */
     height: auto;
     animation: logoIntro 1.2s ease-out;
 }
