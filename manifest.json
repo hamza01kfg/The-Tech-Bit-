@@ -11,10 +11,10 @@
     {
       "src": "Images/favicons/favicon-192.png",
       "sizes": "192x192",
-      "type": "Image/png"
+      "type": "image/png"
     },
     {
-      "src": "images/favicons/favicon-512.png",
+      "src": "Images/favicons/favicon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
