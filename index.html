@@ -3,35 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>The Tech Bit - Innovative Tech Products | Shop Smart Gadgets</title>
-    <meta name="description" content="The Tech Bit offers premium innovative tech products including wireless earbuds, smartwatches, gaming gear, and audio accessories. Fast delivery and secure payment.">
-    <meta name="keywords" content="tech products, gadgets, smartwatch, wireless earbuds, gaming keyboard, Bluetooth speaker, The Tech Bit, online tech store">
-    <meta name="author" content="The Tech Bit">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://hamza01kfg.github.io/The-Tech-Bit-/">
-    <!-- Open Graph -->
-    <meta property="og:title" content="The Tech Bit - Innovative Tech Products">
-    <meta property="og:description" content="Discover premium tech gadgets that transform your daily life. Smartwatches, earbuds, speakers, and more.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://hamza01kfg.github.io/The-Tech-Bit-/">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="The Tech Bit">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="The Tech Bit - Innovative Tech Products">
-    <meta name="twitter:description" content="Premium tech gadgets for modern lifestyle.">
-    <meta name="twitter:image" content="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200">
+    <title>The Tech Bit - Innovative Tech Products</title>
+    <meta name="description" content="Premium tech products: wireless earbuds, smartwatches, gaming gear. Fast delivery.">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="Images/favicons/favicon-192.png">
-    <link rel="icon" type="image/png" sizes="256x256" href="Images/favicons/favicon-256.png">
     <link rel="icon" type="image/png" sizes="512x512" href="Images/favicons/favicon-512.png">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="firebase-setup.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 
-<!-- ========== واٹس ایپ چیٹ ویجیٹ (اٹیچمنٹ + ایموجی + سینڈ) ========== -->
+<!-- WhatsApp Widget Styles -->
 <style>
     .twb-whatsapp-button {
         position: fixed;
@@ -41,7 +27,7 @@
         height: 60px;
         background-color: #25d366;
         border-radius: 50%;
-        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+        box-shadow: 0 6px 20px rgba(37,211,102,0.5);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -50,21 +36,12 @@
         transition: transform 0.3s, box-shadow 0.3s;
         animation: twb-pulse 2s infinite;
     }
-    .twb-whatsapp-button:hover {
-        transform: scale(1.1);
-        box-shadow: 0 8px 25px rgba(37, 211, 102, 0.7);
-    }
-    .twb-whatsapp-button svg {
-        width: 34px;
-        height: 34px;
-        fill: white;
-    }
+    .twb-whatsapp-button svg { width: 34px; height: 34px; fill: white; }
     @keyframes twb-pulse {
-        0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
-        70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        0% { box-shadow: 0 0 0 0 rgba(37,211,102,0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(37,211,102,0); }
+        100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
     }
-
     .twb-chat-window {
         position: fixed;
         bottom: 100px;
@@ -80,13 +57,7 @@
         flex-direction: column;
         overflow: hidden;
         font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
-        animation: twb-slideUp 0.3s ease;
     }
-    @keyframes twb-slideUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
     .twb-chat-header {
         background: #075e54;
         color: white;
@@ -94,30 +65,14 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        font-weight: bold;
-        font-size: 16px;
     }
-    .twb-chat-header img {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-    .twb-close {
-        margin-left: auto;
-        cursor: pointer;
-        font-size: 22px;
-        opacity: 0.8;
-        transition: opacity 0.2s;
-    }
-    .twb-close:hover { opacity: 1; }
-
+    .twb-chat-header img { width: 40px; height: 40px; border-radius: 50%; }
+    .twb-close { margin-left: auto; cursor: pointer; font-size: 22px; }
     .twb-chat-body {
         padding: 16px;
         height: 200px;
         overflow-y: auto;
         background: #efeae2;
-        flex-shrink: 0;
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -127,25 +82,10 @@
         padding: 10px 14px;
         border-radius: 18px;
         font-size: 14px;
-        line-height: 1.4;
         word-wrap: break-word;
-        animation: twb-fadeIn 0.2s ease;
     }
-    @keyframes twb-fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .twb-message.received {
-        background: white;
-        align-self: flex-start;
-        border-top-left-radius: 4px;
-    }
-    .twb-message.sent {
-        background: #dcf8c6;
-        align-self: flex-end;
-        border-top-right-radius: 4px;
-    }
-
+    .twb-message.received { background: white; align-self: flex-start; border-top-left-radius: 4px; }
+    .twb-message.sent { background: #dcf8c6; align-self: flex-end; border-top-right-radius: 4px; }
     .twb-chat-footer {
         display: flex;
         align-items: center;
@@ -153,25 +93,15 @@
         background: #f0f0f0;
         gap: 6px;
         border-top: 1px solid #ddd;
-        min-height: 60px;
     }
     .twb-footer-icon {
         width: 38px;
         height: 38px;
-        border: none;
         background: transparent;
-        color: #555;
+        border: none;
         font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         cursor: pointer;
         border-radius: 50%;
-        transition: background 0.2s;
-        flex-shrink: 0;
-    }
-    .twb-footer-icon:hover {
-        background: rgba(0,0,0,0.08);
     }
     .twb-chat-footer input {
         flex: 1;
@@ -181,33 +111,17 @@
         font-size: 14px;
         outline: none;
         background: white;
-        min-width: 0;
     }
     .twb-send-btn {
         background: #25d366;
-        border: 2px solid white;
+        border: none;
         color: white;
         width: 44px;
         height: 44px;
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         cursor: pointer;
-        transition: background 0.2s, transform 0.1s;
-        flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         font-size: 20px;
-        font-weight: bold;
-        -webkit-appearance: none;
-        appearance: none;
     }
-    .twb-send-btn:hover {
-        background: #128c7e;
-        transform: scale(1.05);
-    }
-
-    /* ایموجی پینل */
     .twb-emoji-panel {
         position: absolute;
         bottom: 70px;
@@ -221,60 +135,18 @@
         width: 220px;
         gap: 6px;
         z-index: 9999;
-        border: 1px solid #ddd;
     }
-    .twb-emoji-panel span {
-        font-size: 24px;
-        cursor: pointer;
-        padding: 4px;
-        border-radius: 8px;
-        transition: background 0.2s;
-    }
-    .twb-emoji-panel span:hover {
-        background: #e0e0e0;
-    }
-
-    @media (max-width: 768px) {
-        .twb-whatsapp-button {
-            bottom: 105px;
-            right: 15px;
-            width: 55px;
-            height: 55px;
-        }
-        .twb-chat-window {
-            bottom: 105px;
-            right: 10px;
-            width: 280px;
-            max-height: 70vh;
-        }
-        .twb-footer-icon {
-            width: 34px;
-            height: 34px;
-            font-size: 18px;
-        }
-        .twb-send-btn {
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
-        }
-        .twb-chat-footer input {
-            padding: 8px 12px;
-            font-size: 13px;
-        }
-        .twb-emoji-panel {
-            width: 200px;
-            right: 10px;
-            bottom: 65px;
-        }
+    .twb-emoji-panel span { font-size: 24px; cursor: pointer; padding: 4px; border-radius: 8px; }
+    @media (max-width:768px) {
+        .twb-whatsapp-button { bottom: 105px; right: 15px; width: 55px; height: 55px; }
+        .twb-chat-window { bottom: 105px; width: 280px; }
+        .twb-send-btn { width: 40px; height: 40px; }
     }
 </style>
 
-<!-- فلوٹنگ بٹن -->
 <div class="twb-whatsapp-button" id="twbBtn">
     <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
 </div>
-
-<!-- چیٹ ونڈو -->
 <div class="twb-chat-window" id="twbChatWindow">
     <div class="twb-chat-header">
         <img src="Images/logos/whatsappicon-192.png" alt="The Tech Bit">
@@ -282,277 +154,138 @@
         <span class="twb-close" id="twbClose">&times;</span>
     </div>
     <div class="twb-chat-body" id="twbChatBody">
-        <div class="twb-message received">
-            👋 Hello! Welcome to The Tech Bit.<br>
-            How can we help you today?
-        </div>
+        <div class="twb-message received">👋 Hello! Welcome to The Tech Bit.<br>How can we help you today?</div>
     </div>
     <div class="twb-chat-footer">
-        <!-- اٹیچمنٹ بٹن -->
-        <button class="twb-footer-icon" id="twbAttachBtn" title="Attach file">📎</button>
-        
-        <!-- ان پٹ -->
-        <input type="text" id="twbMessageInput" placeholder="Type a message..." autocomplete="off">
-        
-        <!-- ایموجی بٹن -->
-        <button class="twb-footer-icon" id="twbEmojiBtn" title="Emoji">😊</button>
-        
-        <!-- سینڈ بٹن -->
+        <button class="twb-footer-icon" id="twbAttachBtn">📎</button>
+        <input type="text" id="twbMessageInput" placeholder="Type a message...">
+        <button class="twb-footer-icon" id="twbEmojiBtn">😊</button>
         <button class="twb-send-btn" id="twbSendBtn">➤</button>
     </div>
-    
-    <!-- ایموجی پینل -->
     <div class="twb-emoji-panel" id="twbEmojiPanel">
         <span>😀</span><span>😂</span><span>😍</span><span>😢</span><span>😡</span>
-        <span>👍</span><span>👎</span><span>👏</span><span>🙏</span><span>💪</span>
-        <span>❤️</span><span>🎉</span><span>🔥</span><span>⭐</span><span>✅</span>
-        <span>❓</span><span>💡</span><span>📱</span><span>💻</span><span>🛒</span>
-        <span>💸</span><span>📁</span>
+        <span>👍</span><span>👎</span><span>❤️</span><span>🔥</span><span>⭐</span>
+        <span>🛒</span><span>💸</span><span>📁</span>
     </div>
 </div>
-
-<!-- مخفی فائل ان پٹ -->
 <input type="file" id="twbFileInput" style="display:none;">
 
 <script>
-    (function() {
-        // DOM elements
-        const btn = document.getElementById('twbBtn');
-        const chat = document.getElementById('twbChatWindow');
-        const closeBtn = document.getElementById('twbClose');
-        const input = document.getElementById('twbMessageInput');
-        const sendBtn = document.getElementById('twbSendBtn');
-        const chatBody = document.getElementById('twbChatBody');
-        const attachBtn = document.getElementById('twbAttachBtn');
-        const emojiBtn = document.getElementById('twbEmojiBtn');
-        const emojiPanel = document.getElementById('twbEmojiPanel');
-        const fileInput = document.getElementById('twbFileInput');
+(function() {
+    const btn = document.getElementById('twbBtn');
+    const chat = document.getElementById('twbChatWindow');
+    const closeBtn = document.getElementById('twbClose');
+    const input = document.getElementById('twbMessageInput');
+    const sendBtn = document.getElementById('twbSendBtn');
+    const chatBody = document.getElementById('twbChatBody');
+    const attachBtn = document.getElementById('twbAttachBtn');
+    const emojiBtn = document.getElementById('twbEmojiBtn');
+    const emojiPanel = document.getElementById('twbEmojiPanel');
+    const fileInput = document.getElementById('twbFileInput');
 
-        // ----- Draggable Button Logic -----
-        let isDragging = false;
-        let dragStartX = 0, dragStartY = 0;
-        let startLeft = 0, startTop = 0;
-        
-        // Load saved position (stored as left, top percentages or px? Use viewport-relative)
-        function loadButtonPosition() {
-            const saved = localStorage.getItem('twbBtnPos');
-            if (saved) {
-                try {
-                    const pos = JSON.parse(saved);
-                    btn.style.left = pos.left;
-                    btn.style.top = pos.top;
-                    btn.style.right = 'auto';
-                    btn.style.bottom = 'auto';
-                } catch(e) {}
-            } else {
-                // default: right:20px, bottom:90px
-                btn.style.right = '20px';
-                btn.style.bottom = '90px';
-                btn.style.left = 'auto';
-                btn.style.top = 'auto';
-            }
-        }
-        
-        function saveButtonPosition() {
-            const rect = btn.getBoundingClientRect();
-            const pos = {
-                left: rect.left + 'px',
-                top: rect.top + 'px'
-            };
-            localStorage.setItem('twbBtnPos', JSON.stringify(pos));
-        }
-        
-        function onDragStart(e) {
-            // Prevent drag from interfering with button click (only if moved beyond threshold)
-            const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-            const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-            dragStartX = clientX;
-            dragStartY = clientY;
-            
-            const rect = btn.getBoundingClientRect();
-            startLeft = rect.left;
-            startTop = rect.top;
-            
-            isDragging = false; // will become true after movement threshold
-            document.addEventListener('mousemove', onDragMove);
-            document.addEventListener('mouseup', onDragEnd);
-            document.addEventListener('touchmove', onDragMove, { passive: false });
-            document.addEventListener('touchend', onDragEnd);
+    // Draggable
+    let dragStartX=0,dragStartY=0,startLeft=0,startTop=0,isDragging=false,dragTriggered=false;
+    const MOVE_THRESHOLD=8;
+    function getCoords(e) {
+        if(e.touches) return {x:e.touches[0].clientX, y:e.touches[0].clientY};
+        return {x:e.clientX, y:e.clientY};
+    }
+    function onDragStart(e) {
+        const c=getCoords(e); dragStartX=c.x; dragStartY=c.y;
+        const rect=btn.getBoundingClientRect(); startLeft=rect.left; startTop=rect.top;
+        dragTriggered=false; isDragging=true;
+        document.addEventListener('mousemove',onDragMove);
+        document.addEventListener('mouseup',onDragEnd);
+        document.addEventListener('touchmove',onDragMove,{passive:false});
+        document.addEventListener('touchend',onDragEnd);
+    }
+    function onDragMove(e) {
+        if(!isDragging) return;
+        const c=getCoords(e);
+        const dx=c.x-dragStartX, dy=c.y-dragStartY;
+        if(!dragTriggered && (Math.abs(dx)>MOVE_THRESHOLD || Math.abs(dy)>MOVE_THRESHOLD)) {
+            dragTriggered=true;
+            document.body.style.userSelect='none';
             e.preventDefault();
         }
-        
-        let moveThreshold = 5; // pixels
-        let hasMoved = false;
-        
-        function onDragMove(e) {
-            const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-            const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-            const dx = clientX - dragStartX;
-            const dy = clientY - dragStartY;
-            
-            if (!hasMoved && (Math.abs(dx) > moveThreshold || Math.abs(dy) > moveThreshold)) {
-                hasMoved = true;
-                isDragging = true;
-                // Prevent text selection while dragging
-                document.body.style.userSelect = 'none';
-            }
-            
-            if (isDragging) {
-                e.preventDefault();
-                let newLeft = startLeft + dx;
-                let newTop = startTop + dy;
-                // Keep within viewport edges (with some margin)
-                const btnWidth = btn.offsetWidth;
-                const btnHeight = btn.offsetHeight;
-                newLeft = Math.min(window.innerWidth - btnWidth - 10, Math.max(10, newLeft));
-                newTop = Math.min(window.innerHeight - btnHeight - 10, Math.max(10, newTop));
-                btn.style.left = newLeft + 'px';
-                btn.style.top = newTop + 'px';
-                btn.style.right = 'auto';
-                btn.style.bottom = 'auto';
-            }
+        if(dragTriggered) {
+            e.preventDefault();
+            let newLeft=startLeft+dx, newTop=startTop+dy;
+            const w=btn.offsetWidth, h=btn.offsetHeight;
+            newLeft=Math.min(window.innerWidth-w-10, Math.max(10,newLeft));
+            newTop=Math.min(window.innerHeight-h-10, Math.max(10,newTop));
+            btn.style.left=newLeft+'px'; btn.style.top=newTop+'px';
+            btn.style.right='auto'; btn.style.bottom='auto';
         }
-        
-        function onDragEnd(e) {
-            document.removeEventListener('mousemove', onDragMove);
-            document.removeEventListener('mouseup', onDragEnd);
-            document.removeEventListener('touchmove', onDragMove);
-            document.removeEventListener('touchend', onDragEnd);
-            document.body.style.userSelect = '';
-            
-            if (isDragging) {
-                saveButtonPosition();
-                // Reset drag flags after short delay to prevent click event
-                setTimeout(() => { isDragging = false; hasMoved = false; }, 50);
-            } else {
-                hasMoved = false;
-            }
-            isDragging = false;
+    }
+    function onDragEnd() {
+        document.removeEventListener('mousemove',onDragMove);
+        document.removeEventListener('mouseup',onDragEnd);
+        document.removeEventListener('touchmove',onDragMove);
+        document.removeEventListener('touchend',onDragEnd);
+        document.body.style.userSelect='';
+        if(dragTriggered) localStorage.setItem('twbBtnPos',JSON.stringify({left:btn.style.left,top:btn.style.top}));
+        isDragging=false;
+        setTimeout(()=>{dragTriggered=false;},50);
+    }
+    btn.addEventListener('mousedown',onDragStart);
+    btn.addEventListener('touchstart',onDragStart);
+    const saved=localStorage.getItem('twbBtnPos');
+    if(saved) try{const pos=JSON.parse(saved); btn.style.left=pos.left; btn.style.top=pos.top; btn.style.right='auto'; btn.style.bottom='auto';}catch(e){}
+    else { btn.style.right='20px'; btn.style.bottom='90px'; btn.style.left='auto'; btn.style.top='auto'; }
+    btn.addEventListener('click',(e)=>{
+        if(dragTriggered) return;
+        chat.style.display=chat.style.display==='flex'?'none':'flex';
+        emojiPanel.style.display='none';
+    });
+    closeBtn.onclick=()=>{ chat.style.display='none'; emojiPanel.style.display='none'; };
+    document.addEventListener('click',(e)=>{
+        if(!chat.contains(e.target) && e.target!==btn && !btn.contains(e.target)) {
+            chat.style.display='none'; emojiPanel.style.display='none';
         }
-        
-        // Attach drag events
-        btn.addEventListener('mousedown', onDragStart);
-        btn.addEventListener('touchstart', onDragStart, { passive: false });
-        
-        // Ensure click toggles chat only if not dragged
-        let originalClick = null;
-        btn.addEventListener('click', (e) => {
-            if (isDragging || hasMoved) {
-                e.stopPropagation();
-                return;
-            }
-            // Toggle chat window
-            chat.style.display = chat.style.display === 'flex' ? 'none' : 'flex';
-            emojiPanel.style.display = 'none';
-        });
-        
-        // Load saved position on page load
-        loadButtonPosition();
-        // Optional: adjust on window resize to keep within bounds
-        window.addEventListener('resize', () => {
-            const left = parseInt(btn.style.left);
-            const top = parseInt(btn.style.top);
-            if (!isNaN(left) && !isNaN(top)) {
-                const btnWidth = btn.offsetWidth;
-                const btnHeight = btn.offsetHeight;
-                let newLeft = Math.min(window.innerWidth - btnWidth - 10, Math.max(10, left));
-                let newTop = Math.min(window.innerHeight - btnHeight - 10, Math.max(10, top));
-                if (newLeft !== left || newTop !== top) {
-                    btn.style.left = newLeft + 'px';
-                    btn.style.top = newTop + 'px';
-                    saveButtonPosition();
-                }
-            }
-        });
-        
-        // ----- Existing chat logic (unchanged) -----
-        closeBtn.addEventListener('click', () => {
-            chat.style.display = 'none';
-            emojiPanel.style.display = 'none';
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!chat.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
-                chat.style.display = 'none';
-                emojiPanel.style.display = 'none';
-            }
-        });
-        
-        function sendMessage() {
-            const text = input.value.trim();
-            if (!text) return;
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'twb-message sent';
-            msgDiv.textContent = text;
-            chatBody.appendChild(msgDiv);
-            chatBody.scrollTop = chatBody.scrollHeight;
-            const phone = '923082528844';
-            window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(text), '_blank');
-            input.value = '';
+    });
+    function sendMessage() {
+        const text=input.value.trim();
+        if(!text) return;
+        const msgDiv=document.createElement('div'); msgDiv.className='twb-message sent'; msgDiv.textContent=text;
+        chatBody.appendChild(msgDiv); chatBody.scrollTop=chatBody.scrollHeight;
+        const phone='923082528844';
+        window.location.href=`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`;
+        input.value='';
+    }
+    sendBtn.onclick=sendMessage;
+    input.addEventListener('keypress',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
+    attachBtn.onclick=()=>fileInput.click();
+    fileInput.onchange=()=>{
+        if(fileInput.files.length){
+            const fn=fileInput.files[0].name;
+            input.value=input.value.trim()+(input.value?' ':'')+'[File: '+fn+']';
+            fileInput.value='';
         }
-        
-        sendBtn.addEventListener('click', sendMessage);
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-        
-        attachBtn.addEventListener('click', () => {
-            fileInput.click();
-        });
-        
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                const fileName = fileInput.files[0].name;
-                const currentText = input.value;
-                input.value = currentText + (currentText ? ' ' : '') + '[فائل: ' + fileName + ']';
-                fileInput.value = '';
-            }
-        });
-        
-        emojiBtn.addEventListener('click', (e) => {
+    };
+    emojiBtn.onclick=(e)=>{ e.stopPropagation(); emojiPanel.style.display=emojiPanel.style.display==='flex'?'none':'flex'; };
+    emojiPanel.querySelectorAll('span').forEach(span=>{
+        span.onclick=(e)=>{
             e.stopPropagation();
-            emojiPanel.style.display = emojiPanel.style.display === 'flex' ? 'none' : 'flex';
-        });
-        
-        emojiPanel.querySelectorAll('span').forEach(emoji => {
-            emoji.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const emojiChar = emoji.textContent;
-                const cursorPos = input.selectionStart;
-                const textBefore = input.value.substring(0, cursorPos);
-                const textAfter = input.value.substring(cursorPos);
-                input.value = textBefore + emojiChar + textAfter;
-                input.selectionStart = input.selectionEnd = cursorPos + emojiChar.length;
-                input.focus();
-                emojiPanel.style.display = 'none';
-            });
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!emojiPanel.contains(e.target) && e.target !== emojiBtn) {
-                emojiPanel.style.display = 'none';
-            }
-        });
-        
-        chat.style.display = 'none';
-    })();
+            const em=span.textContent;
+            const pos=input.selectionStart;
+            input.value=input.value.slice(0,pos)+em+input.value.slice(pos);
+            input.selectionStart=input.selectionEnd=pos+em.length;
+            input.focus();
+            emojiPanel.style.display='none';
+        };
+    });
+    document.addEventListener('click',(e)=>{ if(!emojiPanel.contains(e.target) && e.target!==emojiBtn) emojiPanel.style.display='none'; });
+    chat.style.display='none';
+})();
 </script>
 
 <body>
-
-<!-- ========== لوگو اینیمیشن اوورلے ========== -->
-<div id="logoOverlay">
-    <img src="Images/logos/logo-animation.gif" alt="The Tech Bit" class="logo-animate">
-</div>
+<div id="logoOverlay"><img src="Images/logos/logo-animation.gif" alt="The Tech Bit" class="logo-animate"></div>
 
 <header>
     <nav>
-        <div class="logo">
-            <img src="Images/logos/web-logo-512.png" alt="The Tech Bit">
-        </div>
+        <div class="logo"><img src="Images/logos/web-logo-512.png" alt="The Tech Bit"></div>
         <button class="mobile-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
         <ul class="nav-links" id="navLinks">
             <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
@@ -563,14 +296,13 @@
             <li><a href="#" class="nav-link" data-page="auth">Account</a></li>
         </ul>
         <div class="header-controls">
-            <button class="share-icon" id="shareSite" aria-label="Share"><i class="fas fa-share-alt"></i></button>
-            <button class="settings-icon" id="settingsBtn" aria-label="Settings"><i class="fas fa-cog"></i></button>
+            <button class="share-icon" id="shareSite"><i class="fas fa-share-alt"></i></button>
+            <button class="settings-icon" id="settingsBtn"><i class="fas fa-cog"></i></button>
         </div>
     </nav>
 </header>
 
 <main>
-    <!-- Home Page -->
     <section id="home" class="page active">
         <div class="hero fade-in-up">
             <h1>Welcome to The Tech Bit</h1>
@@ -580,47 +312,34 @@
                 <button class="btn btn-secondary" id="homeProductsBtn"><i class="fas fa-shopping-cart"></i> Buy Product</button>
             </div>
         </div>
-        <h2 style="margin: 20px 0 10px; color: var(--primary);">Featured Products</h2>
+        <h2 style="margin:20px 0 10px; color:var(--primary);">Featured Products</h2>
         <div class="products-grid" id="homeProducts"></div>
     </section>
 
-    <!-- Products Page -->
     <section id="products" class="page">
-        <div class="hero fade-in-up">
-            <h1>Our Products</h1>
-            <p>Explore our complete range of innovative tech products.</p>
-        </div>
+        <div class="hero fade-in-up"><h1>Our Products</h1><p>Explore our complete range of innovative tech products.</p></div>
         <div class="filter-container">
             <div class="filter-group">
-                <input type="text" id="searchInput" class="filter-input" placeholder="Search products..." aria-label="Search">
-                <select id="brandFilter" class="filter-select"><option value="">All Brands</option></select>
-                <select id="categoryFilter" class="filter-select"><option value="">All Categories</option></select>
+                <input type="text" id="searchInput" placeholder="Search products...">
+                <select id="brandFilter"><option value="">All Brands</option></select>
+                <select id="categoryFilter"><option value="">All Categories</option></select>
                 <button class="filter-btn" id="applyFilters">Apply Filters</button>
                 <button class="filter-btn" id="resetFilters" style="background:#6c757d">Reset</button>
             </div>
         </div>
         <div id="productError" class="empty-message" style="display:none;"></div>
         <div class="products-grid" id="productsGrid"></div>
-        <div id="pagination" style="text-align:center; margin-top:20px; display:none;">
+        <div id="pagination" style="text-align:center;margin-top:20px;display:none;">
             <button id="prevPage" class="btn btn-secondary">Prev</button>
-            <span id="pageNumbers" style="margin:0 8px; display:inline-flex; gap:4px; flex-wrap:wrap; justify-content:center;"></span>
+            <span id="pageNumbers" style="margin:0 8px;display:inline-flex;gap:4px;"></span>
             <button id="nextPage" class="btn btn-secondary">Next</button>
         </div>
     </section>
 
-    <!-- Offer Page -->
     <section id="offer" class="page">
-        <div class="hero fade-in-up">
-            <h1>Special Limited Time Offer</h1>
-            <p>Don't miss our exclusive promotion with incredible savings.</p>
-        </div>
-        <div class="offer-banner">
-            <h2>30% OFF</h2>
-            <p>On all The Tech Bit products</p>
-            <div class="btn-group">
-                <button class="btn btn-primary" id="offerVideoBtn"><i class="fas fa-play-circle"></i> See Video</button>
-                <button class="btn btn-secondary" id="offerProductsBtn"><i class="fas fa-shopping-cart"></i> Buy Now</button>
-            </div>
+        <div class="hero fade-in-up"><h1>Special Limited Time Offer</h1><p>Don't miss our exclusive promotion.</p></div>
+        <div class="offer-banner"><h2>30% OFF</h2><p>On all The Tech Bit products</p>
+            <div class="btn-group"><button class="btn btn-primary" id="offerVideoBtn"><i class="fas fa-play-circle"></i> See Video</button><button class="btn btn-secondary" id="offerProductsBtn"><i class="fas fa-shopping-cart"></i> Buy Now</button></div>
         </div>
         <div class="features-grid">
             <div class="feature"><i class="fas fa-shipping-fast"></i><h3>Free Shipping</h3><p>Worldwide delivery</p></div>
@@ -630,63 +349,44 @@
         </div>
     </section>
 
-    <!-- Video Page -->
     <section id="video" class="page">
-        <div class="hero fade-in-up">
-            <h1>Product Videos</h1>
-            <p>Watch our product demonstrations and see how The Tech Bit can transform your daily routine.</p>
-        </div>
+        <div class="hero fade-in-up"><h1>Product Videos</h1><p>Watch our product demonstrations.</p></div>
         <div class="video-player-container">
-            <div class="video-player">
-                <video id="mainVideo" poster="images/video-poster.jpg"></video>
-            </div>
+            <div class="video-player"><video id="mainVideo" poster="images/video-poster.jpg"></video></div>
             <div class="video-controls">
-                <button id="playPauseBtn" class="btn video-btn" aria-label="Play/Pause"><i class="fas fa-play"></i></button>
+                <button id="playPauseBtn" class="btn video-btn"><i class="fas fa-play"></i></button>
                 <div class="progress-bar" id="progressBar"><div class="progress" id="progress"></div></div>
                 <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
-                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100" aria-label="Volume">
-                <button id="fullscreenBtn" class="btn video-btn" aria-label="Fullscreen"><i class="fas fa-expand"></i></button>
+                <input type="range" id="volumeSlider" min="0" max="100" value="100">
+                <button id="fullscreenBtn" class="btn video-btn"><i class="fas fa-expand"></i></button>
             </div>
-            <div class="video-info" style="padding: 16px;">
-                <h3 id="videoTitle"></h3>
-                <p id="videoDesc"></p>
-                <button class="btn btn-secondary" id="buyVideoBtn">Buy Now</button>
-            </div>
+            <div class="video-info"><h3 id="videoTitle"></h3><p id="videoDesc"></p><button class="btn btn-secondary" id="buyVideoBtn">Buy Now</button></div>
         </div>
         <div class="video-list" id="videoList"></div>
     </section>
 
-    <!-- Contact Page -->
     <section id="contact" class="page">
-        <div class="hero fade-in-up">
-            <h1>Contact Us</h1>
-            <p>Have questions or need support? Get in touch with our team.</p>
-        </div>
+        <div class="hero fade-in-up"><h1>Contact Us</h1><p>Have questions? Get in touch.</p></div>
         <div class="form-container">
             <form id="contactForm">
-                <div class="form-group"><label>Full Name *</label><input type="text" id="contactName" class="form-control" required></div>
-                <div class="form-group"><label>Email *</label><input type="email" id="contactEmail" class="form-control" required></div>
-                <div class="form-group"><label>Phone</label><input type="tel" id="contactPhone" class="form-control"></div>
-                <div class="form-group"><label>Subject *</label><input type="text" id="contactSubject" class="form-control" required></div>
-                <div class="form-group"><label>Message *</label><textarea id="contactMessage" class="form-control" rows="5" required></textarea></div>
+                <div class="form-group"><label>Full Name *</label><input type="text" id="contactName" required></div>
+                <div class="form-group"><label>Email *</label><input type="email" id="contactEmail" required></div>
+                <div class="form-group"><label>Phone</label><input type="tel" id="contactPhone"></div>
+                <div class="form-group"><label>Subject *</label><input type="text" id="contactSubject" required></div>
+                <div class="form-group"><label>Message *</label><textarea id="contactMessage" rows="5" required></textarea></div>
                 <button type="submit" class="btn btn-primary" id="contactSubmitBtn">Send Message</button>
-                <button type="button" class="btn btn-secondary" id="cancelContactBtn" style="display:none; margin-left:8px;">Cancel</button>
+                <button type="button" class="btn btn-secondary" id="cancelContactBtn" style="display:none;">Cancel</button>
             </form>
         </div>
     </section>
 
-    <!-- Account Page -->
     <section id="auth" class="page">
-        <div class="hero fade-in-up">
-            <h1>Account</h1>
-            <p>Sign in or create an account to access exclusive features.</p>
-        </div>
+        <div class="hero fade-in-up"><h1>Account</h1><p>Sign in or create an account.</p></div>
         <div class="form-container" id="authContainer"></div>
     </section>
 </main>
 
-<!-- Mobile Bottom Nav -->
-<nav class="mobile-bottom-nav" id="mobileNav">
+<nav class="mobile-bottom-nav">
     <div class="mobile-nav-items">
         <a href="#" class="mobile-nav-item active" data-page="home"><i class="fas fa-home"></i><span>Home</span></a>
         <a href="#" class="mobile-nav-item" data-page="products"><i class="fas fa-box"></i><span>Products</span></a>
@@ -697,68 +397,17 @@
     </div>
 </nav>
 
-<!-- Product Modal -->
-<div id="productModal" class="modal">
-    <div class="modal-content">
-        <span class="modal-close">&times;</span>
-        <div id="productDetailContent"></div>
-    </div>
-</div>
+<div id="productModal" class="modal"><div class="modal-content"><span class="modal-close">&times;</span><div id="productDetailContent"></div></div></div>
+<div id="settingsModal" class="modal"><div class="modal-content"><span class="modal-close" id="closeSettings">&times;</span><h2><i class="fas fa-cog"></i> Settings</h2>
+    <div><label>Theme:</label><select id="themeSelect"><option value="light">Light</option><option value="dark">Dark</option><option value="nature">Nature</option><option value="ocean">Ocean</option></select></div>
+    <div><label>Font Size:</label><select id="fontSizeSelect"><option value="small">Small</option><option value="medium" selected>Medium</option><option value="large">Large</option></select></div>
+    <div><label>Animation Speed:</label><select id="animSpeedSelect"><option value="0.2s">Fast</option><option value="0.3s" selected>Medium</option><option value="0.5s">Slow</option></select></div>
+</div></div>
 
-<!-- Settings Modal -->
-<div id="settingsModal" class="modal">
-    <div class="modal-content" style="max-width:500px;">
-        <span class="modal-close" id="closeSettings">&times;</span>
-        <h2><i class="fas fa-cog"></i> Settings</h2>
-        <div style="margin-top:20px;">
-            <label>Theme:</label>
-            <select id="themeSelect">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="nature">Nature</option>
-                <option value="ocean">Ocean</option>
-            </select>
-        </div>
-        <div style="margin-top:16px;">
-            <label>Font Size:</label>
-            <select id="fontSizeSelect">
-                <option value="small">Small</option>
-                <option value="medium" selected>Medium</option>
-                <option value="large">Large</option>
-            </select>
-        </div>
-        <div style="margin-top:16px;">
-            <label>Animation Speed:</label>
-            <select id="animSpeedSelect">
-                <option value="0.2s">Fast</option>
-                <option value="0.3s" selected>Medium</option>
-                <option value="0.5s">Slow</option>
-            </select>
-        </div>
-    </div>
-</div>
-
-<footer>
-    <div class="footer-content">
-        <div class="footer-links">
-            <a href="#" data-page="home">Home</a>
-            <a href="#" data-page="products">Products</a>
-            <a href="#" data-page="video">Videos</a>
-            <a href="#" data-page="contact">Contact</a>
-            <a href="#" data-page="auth">Account</a>
-        </div>
-        <p>&copy; 2026 <strong>The Tech Bit</strong>. All rights reserved.</p>
-        <p>Contact: info@thetechbit.com | +92 308 2528844</p>
-    </div>
-</footer>
+<footer><div class="footer-content"><div class="footer-links"><a href="#" data-page="home">Home</a><a href="#" data-page="products">Products</a><a href="#" data-page="video">Videos</a><a href="#" data-page="contact">Contact</a><a href="#" data-page="auth">Account</a></div><p>&copy; 2026 <strong>The Tech Bit</strong>. All rights reserved.</p><p>Contact: info@thetechbit.com | +92 308 2528844</p></div></footer>
 
 <div class="notification" id="notification"><span id="notifyText"></span></div>
-
-<!-- ✅ Fixed: Added Loading Spinner Element -->
-<div id="loading" class="loading-spinner">
-    <div class="spinner"></div>
-    <p>Loading...</p>
-</div>
+<div id="loading" class="loading-spinner"><div class="spinner"></div><p>Loading...</p></div>
 
 <script src="app.js"></script>
 </body>
