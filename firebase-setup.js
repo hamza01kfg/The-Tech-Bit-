@@ -1,11 +1,12 @@
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyB3e5fG7K8jLmN9vXzQpR2sT1uVwXyZabC",
-    authDomain: "ht-service-project.firebaseapp.com",
-    projectId: "ht-service-project",
-    storageBucket: "ht-service-project.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef1234567890"
+    apiKey: "AIzaSyDHBnQ8TuWAN5f3ZiVRrl37Q_i1ZN8UH5A",
+    authDomain: "ht-service-f3b26.firebaseapp.com",
+    projectId: "ht-service-f3b26",
+    storageBucket: "ht-service-f3b26.firebasestorage.app",
+    messagingSenderId: "965745117356",
+    appId: "1:965745117356:web:c5b5accabc4c12b0c37709",
+    measurementId: "G-9Z6DTTB58D"
 };
 firebase.initializeApp(firebaseConfig);
 
