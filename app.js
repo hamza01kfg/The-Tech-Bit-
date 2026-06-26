@@ -279,7 +279,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.querySelector('.modal-close')?.addEventListener('click',()=>modal.style.display='none');
     window.addEventListener('click',(e)=>{ if(e.target===modal) modal.style.display='none'; });
 });
-if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('/The-Tech-Bit-/sw.js').catch(e=>console.log(e)));
+
+// ✅ FIX: سروس ورکر کی پاتھ اب رشتہ دار (relative) ہے
+if('serviceWorker' in navigator) 
+    window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(e=>console.log(e)));
+
 if(window.matchMedia('(display-mode: standalone)').matches) document.querySelector('footer')?.remove();
 const overlay=document.getElementById('logoOverlay');
 if(overlay) setTimeout(()=>{ overlay.classList.add('hide-overlay'); overlay.addEventListener('transitionend',()=>overlay.remove()); },2500);
