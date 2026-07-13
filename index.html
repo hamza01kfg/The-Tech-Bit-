@@ -8,19 +8,17 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
-    <!-- Favicons (اگر تصاویر نہ ہوں تو یہ لنک ہٹا دیں) -->
     <link rel="icon" type="image/png" sizes="192x192" href="https://via.placeholder.com/192">
     <link rel="icon" type="image/png" sizes="512x512" href="https://via.placeholder.com/512">
     
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="firebase-setup.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 
-<!-- WhatsApp Widget Styles (پہلے والے ہی ہیں، کوئی تبدیلی نہیں) -->
 <style>
+    /* WhatsApp Widget Styles */
     .twb-whatsapp-button {
         position: fixed;
         bottom: 90px;
@@ -146,7 +144,7 @@
     }
 </style>
 
-<!-- WhatsApp Button & Chat Window -->
+<!-- WhatsApp Widget -->
 <div class="twb-whatsapp-button" id="twbBtn">
     <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
 </div>
@@ -174,7 +172,7 @@
 <input type="file" id="twbFileInput" style="display:none;">
 
 <script>
-// WhatsApp Widget JavaScript (کوئی تبدیلی نہیں)
+// WhatsApp Widget JS
 (function() {
     const btn = document.getElementById('twbBtn');
     const chat = document.getElementById('twbChatWindow');
@@ -283,50 +281,6 @@
 })();
 </script>
 
-<!-- یہ حصہ آپ کے موجودہ index.html کے Hero سیکشن میں ڈالیں -->
-<div class="hero fade-in-up">
-    <h1>Welcome to The Tech Bit</h1>
-    <p>Discover innovative products that will transform your daily life.</p>
-    
-    <!-- 🌟 نیا وائس سرچ بار (یہاں شامل کریں) 🌟 -->
-    <div class="voice-search-container">
-        <div class="search-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="globalVoiceSearch" placeholder="Search products... (e.g. Headphones, Watch)" class="voice-search-input">
-            <button class="mic-btn" id="globalMicBtn" title="Click to speak and search">
-                <i class="fas fa-microphone"></i>
-            </button>
-            <button class="clear-btn" id="globalClearBtn" style="display: none;">
-                <i class="fas fa-times-circle"></i>
-            </button>
-        </div>
-        <div id="voiceStatus" class="voice-status">Tap the mic 🎤 to search with your voice</div>
-    </div>
-
-    <div class="btn-group">
-        <button class="btn btn-primary" id="homeVideoBtn"><i class="fas fa-play-circle"></i> See Video</button>
-        <button class="btn btn-secondary" id="homeProductsBtn"><i class="fas fa-shopping-cart"></i> Buy Product</button>
-    </div>
-</div>
-
-<!-- پراڈکٹس پیج کے فلٹر سیکشن کو بھی اپڈیٹ کریں (پہلے سے موجود کو اس سے بدل دیں) -->
-<div class="filter-container">
-    <div class="filter-group">
-        <div class="search-wrapper" style="flex: 2; min-width: 200px;">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" placeholder="Search products..." class="voice-search-input">
-            <button class="mic-btn" id="productsMicBtn" title="Search by voice">
-                <i class="fas fa-microphone"></i>
-            </button>
-        </div>
-        <select id="brandFilter"><option value="">All Brands</option></select>
-        <select id="categoryFilter"><option value="">All Categories</option></select>
-        <button class="filter-btn" id="applyFilters">Apply</button>
-        <button class="filter-btn" id="resetFilters" style="background:#6c757d">Reset</button>
-    </div>
-</div>
-
-
 <body>
 <div id="logoOverlay"><img src="https://via.placeholder.com/180" alt="The Tech Bit" class="logo-animate"></div>
 
@@ -350,10 +304,27 @@
 </header>
 
 <main>
+    <!-- ========== HOME PAGE WITH VOICE SEARCH ========== -->
     <section id="home" class="page active">
         <div class="hero fade-in-up">
             <h1>Welcome to The Tech Bit</h1>
             <p>Discover innovative products that will transform your daily life.</p>
+            
+            <!-- ✅ Voice Search Widget (صحیح جگہ پر) -->
+            <div class="voice-search-container">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="globalVoiceSearch" placeholder="Search products... (e.g. Headphones, Watch)" class="voice-search-input">
+                    <button class="mic-btn" id="globalMicBtn" title="Click to speak and search">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="clear-btn" id="globalClearBtn" style="display: none;">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+                <div id="voiceStatus" class="voice-status">Tap the mic 🎤 to search with your voice</div>
+            </div>
+
             <div class="btn-group">
                 <button class="btn btn-primary" id="homeVideoBtn"><i class="fas fa-play-circle"></i> See Video</button>
                 <button class="btn btn-secondary" id="homeProductsBtn"><i class="fas fa-shopping-cart"></i> Buy Product</button>
@@ -363,14 +334,21 @@
         <div class="products-grid" id="homeProducts"></div>
     </section>
 
+    <!-- ========== PRODUCTS PAGE ========== -->
     <section id="products" class="page">
         <div class="hero fade-in-up"><h1>Our Products</h1><p>Explore our complete range of innovative tech products.</p></div>
         <div class="filter-container">
             <div class="filter-group">
-                <input type="text" id="searchInput" placeholder="Search products...">
+                <div class="search-wrapper" style="flex: 2; min-width: 200px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search products..." class="voice-search-input">
+                    <button class="mic-btn" id="productsMicBtn" title="Search by voice">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
                 <select id="brandFilter"><option value="">All Brands</option></select>
                 <select id="categoryFilter"><option value="">All Categories</option></select>
-                <button class="filter-btn" id="applyFilters">Apply Filters</button>
+                <button class="filter-btn" id="applyFilters">Apply</button>
                 <button class="filter-btn" id="resetFilters" style="background:#6c757d">Reset</button>
             </div>
         </div>
@@ -456,7 +434,6 @@
 <div class="notification" id="notification"><span id="notifyText"></span></div>
 <div id="loading" class="loading-spinner"><div class="spinner"></div><p>Loading...</p></div>
 
-<!-- ✅ صرف ایک بار Firebase initialize ہوا، اور سارا JavaScript app.js میں ہے -->
 <script src="app.js"></script>
 </body>
 </html>
