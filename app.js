@@ -287,3 +287,264 @@ if('serviceWorker' in navigator)
 if(window.matchMedia('(display-mode: standalone)').matches) document.querySelector('footer')?.remove();
 const overlay=document.getElementById('logoOverlay');
 if(overlay) setTimeout(()=>{ overlay.classList.add('hide-overlay'); overlay.addEventListener('transitionend',()=>overlay.remove()); },2500);
+
+// ==========================================
+// 🎤 Voice Search / Speech Recognition Widget
+// ==========================================
+function initVoiceSearch() {
+    // Recognize if browser supports it
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        document.querySelectorAll('.mic-btn').forEach(btn => {
+            btn.style.display = 'none';
+            btn.title = 'Voice search not supported in this browser';
+        });
+        document.getElementById('voiceStatus').innerText = 'Voice search not supported. Please use Chrome or Edge.';
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US'; // Set to 'ur-PK' for Urdu, or 'en-US' for English
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    let isListening = false;
+    let activeInput = null;
+    let activeMicBtn = null;
+
+    // Function to set listening state
+    function setListeningState(micBtn, input, isListening) {
+        if (!micBtn) return;
+        if (isListening) {
+            micBtn.classList.add('listening');
+            micBtn.innerHTML = '<i class="fas fa-microphone-alt"></i>';
+            document.getElementById('voiceStatus').innerText = '🎙️ Listening... Speak now!';
+            document.getElementById('voiceStatus').className = 'voice-status active';
+        } else {
+            micBtn.classList.remove('listening', 'processing');
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        }
+    }
+
+    // Attach click listeners to all mic buttons
+    document.querySelectorAll('.mic-btn').forEach((micBtn) => {
+        micBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            // Find associated input
+            const wrapper = this.closest('.search-wrapper');
+            const input = wrapper ? wrapper.querySelector('.voice-search-input') : null;
+            const clearBtn = wrapper ? wrapper.querySelector('.clear-btn') : null;
+            
+            if (!input) return;
+
+            // If already listening, stop
+            if (isListening) {
+                recognition.stop();
+                setListeningState(this, input, false);
+                isListening = false;
+                document.getElementById('voiceStatus').innerText = '⏹️ Stopped listening.';
+                document.getElementById('voiceStatus').className = 'voice-status';
+                return;
+            }
+
+            // Start listening
+            try {
+                // Clear previous text if empty, or just append
+                // We'll replace the text entirely for search simplicity
+                // but we can keep it if user wants to add.
+                // Let's set it to start fresh so they can say full phrase.
+                // Uncomment next line if you want to clear on mic click:
+                // input.value = '';
+                
+                activeInput = input;
+                activeMicBtn = this;
+                isListening = true;
+                setListeningState(this, input, true);
+                
+                recognition.start();
+            } catch (err) {
+                console.error('Speech start error:', err);
+                document.getElementById('voiceStatus').innerText = '⚠️ Error accessing microphone. Please allow permission.';
+                document.getElementById('voiceStatus').className = 'voice-status error';
+                setListeningState(this, input, false);
+                isListening = false;
+            }
+        });
+    });
+
+    // --- Recognition Event Handlers ---
+    recognition.onresult = function(event) {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript;
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+
+        // Show interim in status
+        if (interimTranscript) {
+            document.getElementById('voiceStatus').innerText = '🗣️ ' + interimTranscript;
+        }
+
+        // If final, set the input
+        if (finalTranscript) {
+            // Capitalize first letter for nice display
+            const formatted = finalTranscript.charAt(0).toUpperCase() + finalTranscript.slice(1).toLowerCase().trim();
+            
+            if (activeInput) {
+                activeInput.value = formatted;
+                
+                // Show clear button
+                const wrapper = activeInput.closest('.search-wrapper');
+                if (wrapper) {
+                    const clearBtn = wrapper.querySelector('.clear-btn');
+                    if (clearBtn) clearBtn.style.display = 'block';
+                }
+
+                // Trigger Search (Apply Filters)
+                if (typeof applyFilters === 'function') {
+                    // If we are on products page or global search
+                    // Let's navigate to products and search
+                    const productsPage = document.getElementById('products');
+                    if (productsPage && !productsPage.classList.contains('active')) {
+                        navigateTo('products');
+                    }
+                    // Small delay to allow navigation to settle
+                    setTimeout(() => {
+                        // Sync the main search input with the voice input if different
+                        const mainSearch = document.getElementById('searchInput');
+                        if (mainSearch && activeInput.id !== 'searchInput') {
+                            mainSearch.value = formatted;
+                        }
+                        applyFilters();
+                        document.getElementById('voiceStatus').innerText = `✅ Found results for "${formatted}"`;
+                        document.getElementById('voiceStatus').className = 'voice-status active';
+                    }, 300);
+                } else {
+                    document.getElementById('voiceStatus').innerText = `✅ You said: "${formatted}"`;
+                }
+            }
+            
+            // Stop listening after final result
+            if (activeMicBtn) {
+                setListeningState(activeMicBtn, activeInput, false);
+            }
+            isListening = false;
+        }
+    };
+
+    recognition.onerror = function(event) {
+        console.error('Speech error:', event.error);
+        let msg = '❌ Error: ';
+        if (event.error === 'not-allowed') msg += 'Microphone access denied. Please allow mic permissions.';
+        else if (event.error === 'no-speech') msg += 'No speech detected. Please try again.';
+        else if (event.error === 'audio-capture') msg += 'No microphone found. Please check your mic.';
+        else msg += event.error;
+        
+        document.getElementById('voiceStatus').innerText = msg;
+        document.getElementById('voiceStatus').className = 'voice-status error';
+        
+        if (activeMicBtn) {
+            setListeningState(activeMicBtn, activeInput, false);
+        }
+        isListening = false;
+    };
+
+    recognition.onend = function() {
+        // Ensure UI is reset if it stops unexpectedly
+        if (isListening) {
+            if (activeMicBtn) {
+                setListeningState(activeMicBtn, activeInput, false);
+            }
+            isListening = false;
+            document.getElementById('voiceStatus').innerText = '⏹️ Listening stopped.';
+            document.getElementById('voiceStatus').className = 'voice-status';
+        }
+    };
+
+    // --- Clear Button Logic ---
+    document.querySelectorAll('.clear-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const wrapper = this.closest('.search-wrapper');
+            if (wrapper) {
+                const input = wrapper.querySelector('.voice-search-input');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                this.style.display = 'none';
+                // Also clear main search if synced
+                const mainSearch = document.getElementById('searchInput');
+                if (mainSearch && input.id !== 'searchInput') {
+                    mainSearch.value = '';
+                }
+                // Trigger reset or clear filter
+                if (typeof applyFilters === 'function') {
+                    // If search is cleared, we should reset filters or just apply empty
+                    // Better to call resetFilters? Let's just apply empty filter.
+                    // Actually, let's just apply filters with empty string.
+                    // But resetFilters might be better UX.
+                    if (typeof resetFilters === 'function') {
+                        // But resetFilters also resets dropdowns. Let's just apply search empty.
+                        document.getElementById('searchInput').value = '';
+                        applyFilters();
+                    }
+                }
+                document.getElementById('voiceStatus').innerText = 'Search cleared.';
+                document.getElementById('voiceStatus').className = 'voice-status';
+            }
+        });
+    });
+
+    // --- Sync typing in global search with main search filter ---
+    const globalSearch = document.getElementById('globalVoiceSearch');
+    if (globalSearch) {
+        globalSearch.addEventListener('input', function() {
+            const mainSearch = document.getElementById('searchInput');
+            if (mainSearch) {
+                mainSearch.value = this.value;
+                // Optionally trigger live search without clicking apply? 
+                // Let's use a small debounce or just let user click apply.
+                // But we can auto apply if user presses Enter.
+            }
+            // Show clear button
+            const wrapper = this.closest('.search-wrapper');
+            if (wrapper) {
+                const clearBtn = wrapper.querySelector('.clear-btn');
+                if (clearBtn) {
+                    clearBtn.style.display = this.value.length > 0 ? 'block' : 'none';
+                }
+            }
+        });
+
+        globalSearch.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const mainSearch = document.getElementById('searchInput');
+                if (mainSearch) mainSearch.value = this.value;
+                if (typeof applyFilters === 'function') {
+                    // Navigate to products
+                    const productsPage = document.getElementById('products');
+                    if (productsPage && !productsPage.classList.contains('active')) {
+                        navigateTo('products');
+                    }
+                    setTimeout(applyFilters, 200);
+                }
+            }
+        });
+    }
+
+    // Also add clear functionality for main search input's wrapper if not already
+    // We already did the global one.
+}
+
+// اس فنکشن کو DOMContentLoaded کے اندر کال کریں
+// اپنے موجودہ DOMContentLoaded کے اندر یہ لائن شامل کریں:
+// initVoiceSearch();
