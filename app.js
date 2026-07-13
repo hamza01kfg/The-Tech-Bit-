@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     window.addEventListener('click',(e)=>{ if(e.target===modal) modal.style.display='none'; });
 });
 
-// ✅ FIX: سروس ورکر کی پاتھ اب رشتہ دار (relative) ہے
+// ✅ درست پاتھ: اب رشتہ دار (relative) ہے
 if('serviceWorker' in navigator) 
     window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(e=>console.log(e)));
 
